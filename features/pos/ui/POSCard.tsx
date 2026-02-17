@@ -1,14 +1,21 @@
 "use client"
 
 import { DndContext } from '@dnd-kit/core'
+import { useQuery } from "@tanstack/react-query"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Camera, X } from "lucide-react"
+import { Camera, X, Loader2 } from "lucide-react"
 import { usePOS } from "./usePOS"
+import { getPOSItems } from "../api"
 import ItemSuggestion from "./ItemSuggestion"
 import ScannedList from "./ScannedList"
 
 export default function POSCard() {
+  const { data: items = [], isLoading } = useQuery({
+    queryKey: ["pos-items"],
+    queryFn: getPOSItems,
+  })
+
   const {
     query,
     setQuery,
@@ -23,7 +30,7 @@ export default function POSCard() {
     subtotal,
     tax,
     total,
-  } = usePOS()
+  } = usePOS(items)
 
   function handleDragEnd(event: any) {
     const { active, over } = event
@@ -36,6 +43,17 @@ export default function POSCard() {
       const item = suggestions.find((i) => i.id === itemId)
       if (item) addItem(item)
     }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="rounded-2xl p-6 glass border shadow-lg w-full flex items-center justify-center min-h-[300px]">
+        <div className="flex flex-col items-center gap-2 text-muted-foreground">
+          <Loader2 className="w-8 h-8 animate-spin" />
+          <span>Cargando productos...</span>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -59,11 +77,17 @@ export default function POSCard() {
             <Button type="button" onClick={() => { if (suggestions[0]) addItem(suggestions[0]) }} className="h-10 px-3">Add</Button>
           </div>
 
-          <div className="mt-3 grid gap-2">
-            {suggestions.slice(0, 6).map((it) => (
-              <ItemSuggestion key={it.id} item={it} onAdd={addItem} />
-            ))}
-          </div>
+          {items.length === 0 ? (
+            <div className="mt-3 p-4 rounded-lg bg-muted/10 border border-border/20 text-center text-sm text-muted-foreground">
+              No hay productos registrados. Agrega items desde el módulo de Items.
+            </div>
+          ) : (
+            <div className="mt-3 grid gap-2">
+              {suggestions.slice(0, 6).map((it) => (
+                <ItemSuggestion key={it.id} item={it} onAdd={addItem} />
+              ))}
+            </div>
+          )}
         </div>
         <div>
           <div className="flex items-center justify-between mb-2">

@@ -2,24 +2,18 @@
 
 import { useMemo, useState } from "react"
 
-export type Item = { id: string; name: string; price: number }
+export type Item = { id: string; name: string; price: number, barcode?: string }
 export type Scanned = { item: Item; qty: number }
 
-const SAMPLE_ITEMS: Item[] = [
-  { id: "001", name: "Americano", price: 1.8 },
-  { id: "002", name: "Latte", price: 2.5 },
-  { id: "003", name: "Cappuccino", price: 2.3 },
-  { id: "004", name: "Croissant", price: 1.2 },
-]
 
-export function usePOS(initialItems: Item[] = SAMPLE_ITEMS) {
+export function usePOS(initialItems: Item[]) {
   const [query, setQuery] = useState("")
   const [scanned, setScanned] = useState<Scanned[]>([])
   const [customer, setCustomer] = useState("")
 
   const suggestions = useMemo(() => {
     if (!query) return initialItems
-    return initialItems.filter((i) => i.name.toLowerCase().includes(query.toLowerCase()) || i.id.includes(query))
+    return initialItems.filter((i) => i.name.toLowerCase().includes(query.toLowerCase()) || i.id.includes(query) || i.barcode?.includes(query))
   }, [query, initialItems])
 
   const addItem = (item: Item) => {

@@ -102,16 +102,15 @@ export default function BranchesView() {
               </div>
             </div>
 
-            {/* ✅ Dirección corregida */}
             {branch.address && (
               <div className="text-sm text-muted-foreground mb-2">
-                📍 {formatAddress(branch.address)}
+                Dirección: {formatAddress(branch.address)}
               </div>
             )}
 
             {branch.phone && (
               <div className="text-sm text-muted-foreground mb-2">
-                📞 {branch.phone}
+                Teléfono: {branch.phone}
               </div>
             )}
 

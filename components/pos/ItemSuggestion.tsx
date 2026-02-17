@@ -28,7 +28,7 @@ export default function ItemSuggestion({ item, onAdd }: Readonly<{ item: Item; o
     >
       <div>
         <div className="text-sm font-semibold text-foreground">{item.name}</div>
-        <div className="text-xs">Código: {item.id}</div>
+        <div className="text-xs">Código: {item.barcode}</div>
       </div>
       <div className="text-sm font-semibold text-primary">${item.price.toFixed(2)}</div>
     </button>

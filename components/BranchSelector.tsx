@@ -27,7 +27,6 @@ export function BranchSelector() {
         const data = await get<Branch[]>("/branches");
         setBranches(data || []);
         
-        // Carga rama seleccionada anterior si existe
         const saved = localStorage.getItem("selectedBranchId");
         if (saved) setSelectedBranchId(saved);
       } catch (err) {

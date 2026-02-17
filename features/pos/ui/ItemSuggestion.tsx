@@ -1,8 +1,8 @@
 "use client"
 
 import React from "react"
-import { Item } from "./usePOS"
 import { useDraggable } from '@dnd-kit/core'
+import type { Item } from "../types"
 
 export default function ItemSuggestion({ item, onAdd }: Readonly<{ item: Item; onAdd: (i: Item) => void }>) {
   const {attributes, listeners, setNodeRef, transform} = useDraggable({ id: `item:${item.id}` })
@@ -28,7 +28,7 @@ export default function ItemSuggestion({ item, onAdd }: Readonly<{ item: Item; o
     >
       <div>
         <div className="text-sm font-semibold">{item.name}</div>
-        <div className="text-xs">Código: {item.id}</div>
+        <div className="text-xs">Código: {item.code}</div>
       </div>
       <div className="text-sm text-primary">${item.price.toFixed(2)}</div>
     </button>

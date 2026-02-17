@@ -3,6 +3,8 @@ export type Item = {
   name: string
   price: number
   code?: string
+  sku?: string
+  barcode?: string
 }
 
 export type Scanned = { 

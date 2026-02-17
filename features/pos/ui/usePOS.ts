@@ -1,26 +1,17 @@
 "use client"
 
 import { useMemo, useState } from "react"
+import type { Item, Scanned } from "../types"
 
-export type Item = { id: string; name: string; price: number }
-export type Scanned = { item: Item; qty: number }
-
-const SAMPLE_ITEMS: Item[] = [
-  { id: "001", name: "Americano", price: 1.8 },
-  { id: "002", name: "Latte", price: 2.5 },
-  { id: "003", name: "Cappuccino", price: 2.3 },
-  { id: "004", name: "Croissant", price: 1.2 },
-]
-
-export function usePOS(initialItems: Item[] = SAMPLE_ITEMS) {
+export function usePOS(items: Item[]) {
   const [query, setQuery] = useState("")
   const [scanned, setScanned] = useState<Scanned[]>([])
   const [customer, setCustomer] = useState("")
 
   const suggestions = useMemo(() => {
-    if (!query) return initialItems
-    return initialItems.filter((i) => i.name.toLowerCase().includes(query.toLowerCase()) || i.id.includes(query))
-  }, [query, initialItems])
+    if (!query) return items
+    return items.filter((i) => i.name.toLowerCase().includes(query.toLowerCase()) || i.id?.includes(query) || i.code?.includes(query))
+  }, [query, items])
 
   const addItem = (item: Item) => {
     setScanned((s) => {
