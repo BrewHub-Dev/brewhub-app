@@ -25,7 +25,6 @@ export function AuthProvider({ children }: Readonly<{ children: React.ReactNode 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Carga usuario y token inicial desde localStorage
   useEffect(() => {
     try {
       if (globalThis.window === undefined) return;
@@ -33,7 +32,6 @@ export function AuthProvider({ children }: Readonly<{ children: React.ReactNode 
       const rawToken = localStorage.getItem("bh_token");
       if (rawUser) setUser(JSON.parse(rawUser));
       if (rawToken) setToken(rawToken);
-      // Si hay user pero no token, asumimos auth cookie-based.
       if (rawUser && !rawToken) setToken("session");
     } catch {}
     finally {
@@ -57,7 +55,6 @@ export function AuthProvider({ children }: Readonly<{ children: React.ReactNode 
     try {
       const response = await authServiceLogin(credentials);
       setUser(response.user);
-      // El token real vive en cookie httpOnly; usamos un placeholder para estado local.
       setToken("session");
     } catch (err) {
       const message = err instanceof Error ? err.message : "Login failed";
@@ -103,7 +100,6 @@ export function AuthProvider({ children }: Readonly<{ children: React.ReactNode 
       setAuth,
       isLoading,
       error,
-      // Auth es cookie-based; si hay user, consideramos autenticado.
       isAuthenticated: !!user,
     }),
     [user, token, initialized, login, logout, setAuth, isLoading, error]

@@ -4,9 +4,10 @@ import {
   Package,
   User,
   Users,
-  BarChart,
-  Store,
   Building2,
+  ClipboardList,
+  Tag,
+  QrCode,
   type LucideIcon,
 } from "lucide-react";
 import type { Permission } from "@/lib/rbac";
@@ -47,10 +48,28 @@ export const navigationItems: NavItem[] = [
     permission: "pos:use",
   },
   {
+    name: "Órdenes",
+    href: "/dashboard/orders",
+    icon: ClipboardList,
+    permission: "orders:view",
+  },
+  {
     name: "Items",
     href: "/dashboard/items",
     icon: Package,
     permission: "items:view",
+  },
+  {
+    name: "Categorías",
+    href: "/dashboard/categories",
+    icon: Tag,
+    permission: "categories:view",
+  },
+  {
+    name: "Invitaciones",
+    href: "/dashboard/invitations",
+    icon: QrCode,
+    permission: "invitations:view",
   },
   {
     name: "Usuarios",

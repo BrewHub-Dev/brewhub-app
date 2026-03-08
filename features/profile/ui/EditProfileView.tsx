@@ -22,14 +22,14 @@ export default function EditProfileView() {
   });
 
   useEffect(() => {
-    if (user) {
-      setProfileData({
-        firstName: user.name || "",
-        lastName: user.lastName || "",
-        emailAddress: user.emailAddress || "",
-      });
-    }
-  }, [user]);
+    if (!user) return;
+
+    setProfileData({
+      firstName: user.name ?? "",
+      lastName: user.lastName ?? "",
+      emailAddress: user.emailAddress ?? "",
+    });
+  }, [user?._id]);
 
   const updateProfileMutation = useMutation({
     mutationFn: () => updateUser(user!._id, profileData),
@@ -93,6 +93,7 @@ export default function EditProfileView() {
             >
               Información Personal
             </button>
+
             <button
               onClick={() => setActiveTab("password")}
               className={`px-6 py-4 text-sm font-medium border-b-2 ${
@@ -110,14 +111,22 @@ export default function EditProfileView() {
           {activeTab === "profile" && (
             <form onSubmit={handleProfileSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-muted-foreground mb-1">
+                <label
+                  htmlFor="profile-nombre"
+                  className="block text-sm font-medium text-muted-foreground mb-1"
+                >
                   Nombre
                 </label>
+
                 <input
+                  id="profile-nombre"
                   type="text"
                   value={profileData.firstName}
                   onChange={(e) =>
-                    setProfileData({ ...profileData, firstName: e.target.value })
+                    setProfileData({
+                      ...profileData,
+                      firstName: e.target.value,
+                    })
                   }
                   className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                   required
@@ -125,14 +134,22 @@ export default function EditProfileView() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-muted-foreground mb-1">
+                <label
+                  htmlFor="profile-apellido"
+                  className="block text-sm font-medium text-muted-foreground mb-1"
+                >
                   Apellido
                 </label>
+
                 <input
+                  id="profile-apellido"
                   type="text"
                   value={profileData.lastName}
                   onChange={(e) =>
-                    setProfileData({ ...profileData, lastName: e.target.value })
+                    setProfileData({
+                      ...profileData,
+                      lastName: e.target.value,
+                    })
                   }
                   className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                   required
@@ -140,14 +157,22 @@ export default function EditProfileView() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-muted-foreground mb-1">
+                <label
+                  htmlFor="profile-email"
+                  className="block text-sm font-medium text-muted-foreground mb-1"
+                >
                   Email
                 </label>
+
                 <input
+                  id="profile-email"
                   type="email"
                   value={profileData.emailAddress}
                   onChange={(e) =>
-                    setProfileData({ ...profileData, emailAddress: e.target.value })
+                    setProfileData({
+                      ...profileData,
+                      emailAddress: e.target.value,
+                    })
                   }
                   className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                   required
@@ -155,10 +180,22 @@ export default function EditProfileView() {
               </div>
 
               <div className="bg-muted p-4 rounded-lg">
-                <div className="text-sm text-muted-foreground">
-                  <p><strong>Rol:</strong> {user.role}</p>
-                  {user.shop?.name && <p><strong>Tienda:</strong> {user.shop.name}</p>}
-                  {user.branch?.name && <p><strong>Sucursal:</strong> {user.branch.name}</p>}
+                <div className="text-sm text-muted-foreground space-y-1">
+                  <p>
+                    <strong>Rol:</strong> {user.role}
+                  </p>
+
+                  {user.shop?.name && (
+                    <p>
+                      <strong>Tienda:</strong> {user.shop.name}
+                    </p>
+                  )}
+
+                  {user.branch?.name && (
+                    <p>
+                      <strong>Sucursal:</strong> {user.branch.name}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -167,7 +204,9 @@ export default function EditProfileView() {
                 disabled={updateProfileMutation.isPending}
                 className="w-full bg-primary text-primary-foreground py-2 rounded-lg hover:bg-primary/90 disabled:opacity-50"
               >
-                {updateProfileMutation.isPending ? "Guardando..." : "Guardar Cambios"}
+                {updateProfileMutation.isPending
+                  ? "Guardando..."
+                  : "Guardar Cambios"}
               </button>
             </form>
           )}
@@ -175,33 +214,50 @@ export default function EditProfileView() {
           {activeTab === "password" && (
             <form onSubmit={handlePasswordSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-muted-foreground mb-1">
+                <label
+                  htmlFor="profile-new-password"
+                  className="block text-sm font-medium text-muted-foreground mb-1"
+                >
                   Nueva Contraseña
                 </label>
+
                 <input
+                  id="profile-new-password"
                   type="password"
                   value={passwordData.newPassword}
                   onChange={(e) =>
-                    setPasswordData({ ...passwordData, newPassword: e.target.value })
+                    setPasswordData({
+                      ...passwordData,
+                      newPassword: e.target.value,
+                    })
                   }
                   className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                   required
                   minLength={6}
                 />
+
                 <p className="text-sm text-muted-foreground mt-1">
                   Mínimo 6 caracteres
                 </p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-muted-foreground mb-1">
+                <label
+                  htmlFor="profile-confirm-password"
+                  className="block text-sm font-medium text-muted-foreground mb-1"
+                >
                   Confirmar Contraseña
                 </label>
+
                 <input
+                  id="profile-confirm-password"
                   type="password"
                   value={passwordData.confirmPassword}
                   onChange={(e) =>
-                    setPasswordData({ ...passwordData, confirmPassword: e.target.value })
+                    setPasswordData({
+                      ...passwordData,
+                      confirmPassword: e.target.value,
+                    })
                   }
                   className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                   required
@@ -214,7 +270,9 @@ export default function EditProfileView() {
                 disabled={updatePasswordMutation.isPending}
                 className="w-full bg-primary text-primary-foreground py-2 rounded-lg hover:bg-primary/90 disabled:opacity-50"
               >
-                {updatePasswordMutation.isPending ? "Actualizando..." : "Cambiar Contraseña"}
+                {updatePasswordMutation.isPending
+                  ? "Actualizando..."
+                  : "Cambiar Contraseña"}
               </button>
             </form>
           )}

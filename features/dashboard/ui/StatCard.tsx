@@ -25,16 +25,12 @@ const colorMap = {
 }
 
 export default function StatCard({ title, value, change, icon, trend, color = "amber" }: Readonly<StatCardProps>) {
-  // Determinar el ícono
   const Icon = typeof icon === "string"
     ? (iconMap[icon as keyof typeof iconMap] || DollarSign)
     : icon
 
-  // Determinar el cambio y tendencia
   const trendValue = typeof trend === "object" ? trend.value : change
   const isPositive = typeof trend === "object" ? trend.isPositive : trend === "up"
-
-  // Obtener colores
   const colorClass = colorMap[color as keyof typeof colorMap] || colorMap.amber
 
   return (

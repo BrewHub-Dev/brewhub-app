@@ -18,7 +18,6 @@ export default function ItemsTable({ items, onEdit, onDelete }: Readonly<ItemsTa
               <th className="text-left py-4 px-6 text-sm font-medium text-muted-foreground">Nombre</th>
               <th className="text-left py-4 px-6 text-sm font-medium text-muted-foreground">Categoría</th>
               <th className="text-left py-4 px-6 text-sm font-medium text-muted-foreground">Precio</th>
-              <th className="text-left py-4 px-6 text-sm font-medium text-muted-foreground">Stock</th>
               <th className="text-left py-4 px-6 text-sm font-medium text-muted-foreground">Acciones</th>
             </tr>
           </thead>
@@ -35,9 +34,6 @@ export default function ItemsTable({ items, onEdit, onDelete }: Readonly<ItemsTa
                 const itemCode = item.code || item.sku || item.barcode
                 const itemCategory = item.category?.name
                 const itemImage = item.images?.[0]
-                const itemStock = item.stock || 0
-
-                console.log(item)
 
                 return (
                   <tr key={itemId} className="border-t border-border/50 hover:bg-muted/30 transition-all">
@@ -75,13 +71,6 @@ export default function ItemsTable({ items, onEdit, onDelete }: Readonly<ItemsTa
                     </td>
                     <td className="py-4 px-6">
                       <span className="font-semibold text-primary">${item.price.toFixed(2)}</span>
-                    </td>
-                    <td className="py-4 px-6">
-                      {itemStock > 0 ? (
-                        <span className="text-sm text-foreground">{itemStock} unidades</span>
-                      ) : (
-                        <span className="text-sm text-muted-foreground">Sin stock</span>
-                      )}
                     </td>
                     <td className="py-4 px-6">
                       <div className="flex items-center gap-2">

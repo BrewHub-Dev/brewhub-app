@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react"
 import { X } from "lucide-react"
-import { Scanned } from "./usePOS"
+import { Scanned } from "../types"
 
 export default function ScannedItem({
   s,
@@ -49,7 +49,7 @@ export default function ScannedItem({
       <div
         ref={ref}
         onPointerDown={(e) => {
-          ;(e.target as Element).setPointerCapture?.(e.pointerId)
+          ; (e.target as Element).setPointerCapture?.(e.pointerId)
           handlePointerStart(e.clientX, e.pointerId)
         }}
         onPointerMove={(e) => {

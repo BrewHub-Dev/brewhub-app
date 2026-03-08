@@ -1,32 +1,16 @@
 "use client"
-import { useEffect, useState } from "react"
 import StatCard from "./StatCard"
 import ChartCard from "./ChartCard"
 import WeeklySalesChart from "./WeeklySalesChart"
 import TopProductsList from "./TopProductsList"
 import RecentOrdersTable from "./RecentOrdersTable"
-import { getDashboardStats, getRecentOrders, getTopProducts, getWeeklySales } from "../api"
-import type { DashboardStats, Order, Product, WeeklySales } from "../types"
+import { useDashboardStats, useRecentOrders, useTopProducts, useWeeklySales } from "../api"
 
 export default function BranchAdminDashboard() {
-  const [stats, setStats] = useState<DashboardStats[]>([])
-  const [recentOrders, setRecentOrders] = useState<Order[]>([])
-  const [topProducts, setTopProducts] = useState<Product[]>([])
-  const [weeklySales, setWeeklySales] = useState<WeeklySales[]>([])
-
-  useEffect(() => {
-    Promise.all([
-      getDashboardStats(),
-      getRecentOrders(),
-      getTopProducts(),
-      getWeeklySales(),
-    ]).then(([statsData, ordersData, productsData, salesData]) => {
-      setStats(statsData)
-      setRecentOrders(ordersData)
-      setTopProducts(productsData)
-      setWeeklySales(salesData)
-    })
-  }, [])
+  const { data: stats = [] } = useDashboardStats()
+  const { data: recentOrders = [] } = useRecentOrders()
+  const { data: topProducts = [] } = useTopProducts()
+  const { data: weeklySales = [] } = useWeeklySales()
 
   return (
     <div className="p-8">

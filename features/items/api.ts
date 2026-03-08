@@ -18,13 +18,11 @@ export async function getItems(): Promise<Item[]> {
       return [];
     }
 
-    // Normalizar datos del backend
     const items = data.map((item: any) => ({
       ...item,
       id: item._id,
       code: item.sku || item.barcode,
       image: item.images?.[0],
-      stock: item.stock || 0,
     }));
 
     console.log(`${items.length} items normalizados:`, items);
@@ -47,7 +45,6 @@ export async function createItem(data: ItemFormData): Promise<Item> {
       sku: data.code,
       barcode: data.code,
       price: data.price,
-      stock: data.stock || 0,
       categoryId: data.categoryId,
       active: true,
       taxIncluded: false,
@@ -58,13 +55,11 @@ export async function createItem(data: ItemFormData): Promise<Item> {
     const response = await api.post("/items", itemData)
     console.log("Item creado:", response)
 
-    // Normalizar respuesta
     return {
       ...response,
       id: response._id,
       code: response.sku || response.barcode,
       image: response.images?.[0],
-      stock: response.stock || 0,
     }
   } catch (err) {
     console.error("Error al crear item:", err)
@@ -82,7 +77,6 @@ export async function updateItem(id: string, data: Partial<ItemFormData>): Promi
       sku: data.code,
       barcode: data.code,
       price: data.price,
-      stock: data.stock,
       categoryId: data.categoryId,
     }
 
@@ -94,7 +88,6 @@ export async function updateItem(id: string, data: Partial<ItemFormData>): Promi
       id: response._id,
       code: response.sku || response.barcode,
       image: response.images?.[0],
-      stock: response.stock || 0,
     }
   } catch (err) {
     console.error("Error al actualizar item:", err)
@@ -113,7 +106,6 @@ export async function deleteItem(id: string): Promise<void> {
   }
 }
 
-// Categorías
 export interface Category {
   _id: string
   id?: string
@@ -125,7 +117,6 @@ export interface Category {
 
 export async function getCategories(): Promise<Category[]> {
   try {
-    // Intentar obtener categorías del endpoint si existe
     const response = await api.get("/categories")
     console.log("Categorías obtenidas:", response)
 
@@ -140,7 +131,6 @@ export async function getCategories(): Promise<Category[]> {
   } catch (err) {
     console.error("Error al obtener categorías:", err)
 
-    // Fallback: extraer categorías únicas de los items
     try {
       const items = await api.get("/items")
       if (Array.isArray(items)) {

@@ -67,7 +67,6 @@ export type Session = {
 
 async function fetchSessionRequest(): Promise<Session> {
   try {
-    // Intentar obtener el usuario actual (requiere cookie de sesión válida)
     const user = await api.get<any>("/users/me");
     if (user?._id) {
       return {
@@ -81,7 +80,6 @@ async function fetchSessionRequest(): Promise<Session> {
     }
     return null;
   } catch (error) {
-    // Si falla (401, etc), no hay sesión válida
     return null;
   }
 }
@@ -91,9 +89,8 @@ export function useSession() {
     queryKey: ["session"],
     queryFn: fetchSessionRequest,
     retry: false,
-    staleTime: 5 * 60 * 1000, // 5 minutos
+    staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
-    // En recarga no existe cache de React Query; revalidamos la cookie en el backend.
     refetchOnMount: true,
   });
 

@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "BrewHub - Gestión de Cafetería",
+  title: "Brewsy",
   description: "Sistema de gestión para cafeterías y sucursales",
 };
 

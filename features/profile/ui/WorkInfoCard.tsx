@@ -27,24 +27,24 @@ export default function WorkInfoCard({ branchName, role, address }: Readonly<Wor
       </h3>
       <div className="space-y-4">
         <div>
-          <label className="text-sm text-muted-foreground block mb-1 flex items-center gap-2 font-medium">
+          <span className="text-sm text-muted-foreground block mb-1 flex items-center gap-2 font-medium">
             <Building2 className="w-4 h-4" />
             Sucursal
-          </label>
+          </span>
           <p className="text-foreground">{branchName}</p>
         </div>
         <div>
-          <label className="text-sm text-muted-foreground block mb-1 flex items-center gap-2 font-medium">
+          <span className="text-sm text-muted-foreground block mb-1 flex items-center gap-2 font-medium">
             <Briefcase className="w-4 h-4" />
             Rol
-          </label>
+          </span>
           <p className="text-foreground">{role}</p>
         </div>
         <div>
-          <label className="text-sm text-muted-foreground block mb-1 flex items-center gap-2 font-medium">
+          <span className="text-sm text-muted-foreground block mb-1 flex items-center gap-2 font-medium">
             <MapPin className="w-4 h-4" />
             Ubicación
-          </label>
+          </span>
           <p className="text-foreground">{formattedAddress}</p>
         </div>
       </div>

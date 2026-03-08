@@ -1,33 +1,18 @@
 "use client"
-import { useEffect, useState } from "react"
 import StatCard from "./StatCard"
 import ChartCard from "./ChartCard"
 import WeeklySalesChart from "./WeeklySalesChart"
 import TopProductsList from "./TopProductsList"
 import RecentOrdersTable from "./RecentOrdersTable"
-import { getDashboardStats, getRecentOrders, getTopProducts, getWeeklySales } from "../api"
-import type { DashboardStats, Order, Product, WeeklySales } from "../types"
+import { useDashboardStats, useRecentOrders, useTopProducts, useWeeklySales } from "../api"
+import type { DashboardStats } from "../types"
 import { Building2, TrendingUp, Package, AlertCircle } from "lucide-react"
 
 export default function ShopAdminDashboard() {
-  const [stats, setStats] = useState<DashboardStats[]>([])
-  const [recentOrders, setRecentOrders] = useState<Order[]>([])
-  const [topProducts, setTopProducts] = useState<Product[]>([])
-  const [weeklySales, setWeeklySales] = useState<WeeklySales[]>([])
-
-  useEffect(() => {
-    Promise.all([
-      getDashboardStats(),
-      getRecentOrders(),
-      getTopProducts(),
-      getWeeklySales(),
-    ]).then(([statsData, ordersData, productsData, salesData]) => {
-      setStats(statsData)
-      setRecentOrders(ordersData)
-      setTopProducts(productsData)
-      setWeeklySales(salesData)
-    })
-  }, [])
+  const { data: stats = [] } = useDashboardStats()
+  const { data: recentOrders = [] } = useRecentOrders()
+  const { data: topProducts = [] } = useTopProducts()
+  const { data: weeklySales = [] } = useWeeklySales()
 
   const shopAdminStats: DashboardStats[] = [
     { title: "Total Sucursales", value: "5", icon: Building2, trend: { value: 0, isPositive: true }, color: "blue" },

@@ -1,33 +1,18 @@
 "use client"
-import { useEffect, useState } from "react"
 import StatCard from "./StatCard"
 import ChartCard from "./ChartCard"
 import WeeklySalesChart from "./WeeklySalesChart"
 import TopProductsList from "./TopProductsList"
 import RecentOrdersTable from "./RecentOrdersTable"
-import { getDashboardStats, getRecentOrders, getTopProducts, getWeeklySales } from "../api"
-import type { DashboardStats, Order, Product, WeeklySales } from "../types"
+import { useDashboardStats, useRecentOrders, useTopProducts, useWeeklySales } from "../api"
+import type { DashboardStats } from "../types"
 import { Store, TrendingUp, Users, DollarSign } from "lucide-react"
 
 export default function AdminDashboard() {
-  const [stats, setStats] = useState<DashboardStats[]>([])
-  const [recentOrders, setRecentOrders] = useState<Order[]>([])
-  const [topProducts, setTopProducts] = useState<Product[]>([])
-  const [weeklySales, setWeeklySales] = useState<WeeklySales[]>([])
-
-  useEffect(() => {
-    Promise.all([
-      getDashboardStats(),
-      getRecentOrders(),
-      getTopProducts(),
-      getWeeklySales(),
-    ]).then(([statsData, ordersData, productsData, salesData]) => {
-      setStats(statsData)
-      setRecentOrders(ordersData)
-      setTopProducts(productsData)
-      setWeeklySales(salesData)
-    })
-  }, [])
+  const { data: stats = [] } = useDashboardStats()
+  const { data: recentOrders = [] } = useRecentOrders()
+  const { data: topProducts = [] } = useTopProducts()
+  const { data: weeklySales = [] } = useWeeklySales()
 
   const adminStats: DashboardStats[] = [
     { title: "Total Tiendas", value: "12", icon: Store, trend: { value: 8.2, isPositive: true }, color: "blue" },
@@ -41,7 +26,7 @@ export default function AdminDashboard() {
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2 text-foreground">Dashboard Global</h1>
-          <p className="text-muted-foreground">Vista general del sistema BrewHub</p>
+          <p className="text-muted-foreground">Vista general del sistema Brewsy</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">

@@ -1,25 +1,13 @@
 import type { User, UserRole } from "../types";
 
-/**
- * Scope de datos según el rol del usuario
- * Define qué datos puede ver cada rol
- */
 export interface DataScope {
-  // IDs de tiendas accesibles (undefined = todas)
   shopIds?: string[];
-  // IDs de sucursales accesibles (undefined = todas de su scope)
   branchIds?: string[];
-  // Puede ver datos de todas las tiendas
   canViewAllShops: boolean;
-  // Puede ver datos de toda su tienda
   canViewShop: boolean;
-  // Solo puede ver su sucursal
   onlyOwnBranch: boolean;
 }
 
-/**
- * Obtiene el scope de datos para un usuario
- */
 export function getUserDataScope(user: User | null): DataScope {
   if (!user) {
     return {
@@ -80,14 +68,12 @@ export function applyScopeFilter(
 ): Record<string, any> {
   const scopedFilters = { ...filters };
 
-  // Si tiene scope de tienda, filtrar por ShopId
   if (scope.shopIds && scope.shopIds.length > 0) {
     scopedFilters.ShopId = scope.shopIds.length === 1
       ? scope.shopIds[0]
       : { $in: scope.shopIds };
   }
 
-  // Si tiene scope de sucursal, filtrar por BranchId
   if (scope.branchIds && scope.branchIds.length > 0) {
     scopedFilters.BranchId = scope.branchIds.length === 1
       ? scope.branchIds[0]

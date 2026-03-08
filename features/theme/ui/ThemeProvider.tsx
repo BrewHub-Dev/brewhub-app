@@ -16,7 +16,6 @@ function loadConfig(): ThemeConfig {
       if (getPresetById(parsed.presetId)) return parsed
     }
 
-    // Legacy migration: old provider stored just "light" or "dark"
     const legacy = localStorage.getItem(LEGACY_STORAGE_KEY)
     if (legacy === "light" || legacy === "dark") {
       const migrated: ThemeConfig = { presetId: DEFAULT_PRESET_ID, mode: legacy }

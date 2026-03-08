@@ -4,16 +4,45 @@ import { DndContext } from '@dnd-kit/core'
 import { useQuery } from "@tanstack/react-query"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Camera, X, Loader2 } from "lucide-react"
+import {
+  Camera,
+  X,
+  Loader2,
+  CheckCircle2,
+  AlertCircle,
+  Banknote,
+  CreditCard,
+  ArrowLeftRight,
+  ShoppingBag,
+  ChevronDown,
+} from "lucide-react"
 import { usePOS } from "./usePOS"
-import { getPOSItems } from "../api"
+import { getBranches, getPOSItems } from "../api"
 import ItemSuggestion from "./ItemSuggestion"
 import ScannedList from "./ScannedList"
+import ModifierModal from "./ModifierModal"
+import type { PaymentMethod, SelectedModifier } from "../types"
+import { useState } from "react"
+
+const PAYMENT_METHODS: { value: PaymentMethod; label: string; icon: React.ElementType }[] = [
+  { value: "cash", label: "Efectivo", icon: Banknote },
+  { value: "card", label: "Tarjeta", icon: CreditCard },
+  { value: "transfer", label: "Transferencia", icon: ArrowLeftRight },
+]
 
 export default function POSCard() {
-  const { data: items = [], isLoading } = useQuery({
+  const { data: items = [], isLoading: loadingItems } = useQuery({
     queryKey: ["pos-items"],
     queryFn: getPOSItems,
+    staleTime: 5 * 60_000,
+    refetchOnWindowFocus: false,
+  })
+
+  const { data: branches = [], isLoading: loadingBranches } = useQuery({
+    queryKey: ["pos-branches"],
+    queryFn: getBranches,
+    staleTime: 10 * 60_000,
+    refetchOnWindowFocus: false,
   })
 
   const {
@@ -27,10 +56,30 @@ export default function POSCard() {
     clear,
     customer,
     setCustomer,
+    branchId,
+    setBranchId,
+    paymentMethod,
+    setPaymentMethod,
     subtotal,
     tax,
     total,
+    checkout,
+    isCheckingOut,
+    lastOrder,
+    setLastOrder,
+    error,
+    setError,
   } = usePOS(items)
+
+  const [selectedItemForMod, setSelectedItemForMod] = useState<any>(null)
+
+  function handleAddItemClick(item: any) {
+    if (item.modifiers && item.modifiers.length > 0) {
+      setSelectedItemForMod(item)
+    } else {
+      addItem(item)
+    }
+  }
 
   function handleDragEnd(event: any) {
     const { active, over } = event
@@ -41,11 +90,11 @@ export default function POSCard() {
     if (aid.startsWith('item:')) {
       const itemId = aid.split(':')[1]
       const item = suggestions.find((i) => i.id === itemId)
-      if (item) addItem(item)
+      if (item) handleAddItemClick(item)
     }
   }
 
-  if (isLoading) {
+  if (loadingItems) {
     return (
       <div className="rounded-2xl p-6 glass border shadow-lg w-full flex items-center justify-center min-h-[300px]">
         <div className="flex flex-col items-center gap-2 text-muted-foreground">
@@ -56,59 +105,208 @@ export default function POSCard() {
     )
   }
 
+  // Orden confirmada
+  if (lastOrder) {
+    return (
+      <div className="rounded-2xl p-8 glass border shadow-lg w-full flex flex-col items-center justify-center min-h-[400px] gap-4">
+        <div className="w-20 h-20 rounded-full bg-green-500/20 flex items-center justify-center">
+          <CheckCircle2 className="w-10 h-10 text-green-500" />
+        </div>
+        <div className="text-center">
+          <h3 className="text-2xl font-bold text-foreground">¡Venta completada!</h3>
+          <p className="text-muted-foreground mt-1">Orden #{lastOrder.orderNumber}</p>
+          <p className="text-3xl font-bold text-primary mt-3">${lastOrder.total.toFixed(2)}</p>
+        </div>
+        <Button onClick={() => setLastOrder(null)} className="mt-4 px-8">
+          Nueva venta
+        </Button>
+      </div>
+    )
+  }
+
   return (
     <div className="rounded-2xl p-6 glass border shadow-lg w-full">
-      <h3 className="text-lg font-semibold mb-3">Punto de venta (POS)</h3>
+      <div className="flex items-center gap-2 mb-4">
+        <ShoppingBag className="w-5 h-5 text-primary" />
+        <h3 className="text-lg font-semibold">Punto de Venta (POS)</h3>
+      </div>
+
+      {/* Error banner */}
+      {error && (
+        <div className="mb-4 flex items-center gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm">
+          <AlertCircle className="w-4 h-4 shrink-0" />
+          <span>{error}</span>
+          <button onClick={() => setError(null)} className="ml-auto"><X className="w-4 h-4" /></button>
+        </div>
+      )}
 
       <DndContext onDragEnd={handleDragEnd}>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-          <label className="text-sm">Cliente</label>
-          <Input placeholder="Nombre del cliente (opcional)" value={customer} onChange={(e) => setCustomer(e.target.value)} className="mb-3 mt-1 bg-muted/20 border" />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-          <label className="text-sm">Escanear QR / Buscar ítem</label>
-          <div className="flex items-center gap-2 mt-2">
-            <div className="relative flex-1">
-              <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Ingresa nombre o código" className="bg-muted/20 border" />
-              <button type="button" className="absolute right-2 top-1/2 -translate-y-1/2" title="Simular escáner">
-                <Camera className="w-5 h-5" />
+          {/* LEFT: Product search + Sucursal + Payment */}
+          <div className="flex flex-col gap-3">
+
+            {/* Sucursal */}
+            <div>
+              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1 block">
+                Sucursal
+              </label>
+              <div className="relative">
+                <select
+                  value={branchId}
+                  onChange={(e) => setBranchId(e.target.value)}
+                  className="w-full h-10 px-3 pr-8 rounded-lg bg-muted/20 border border-border text-sm text-foreground appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/50"
+                >
+                  <option value="">Selecciona una sucursal</option>
+                  {loadingBranches ? (
+                    <option disabled>Cargando...</option>
+                  ) : (
+                    branches.map((b) => (
+                      <option key={b.id} value={b.id}>{b.name}</option>
+                    ))
+                  )}
+                </select>
+                <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+              </div>
+            </div>
+
+            {/* Cliente */}
+            <div>
+              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1 block">Cliente (opcional)</label>
+              <Input
+                placeholder="Nombre del cliente"
+                value={customer}
+                onChange={(e) => setCustomer(e.target.value)}
+                className="bg-muted/20 border"
+              />
+            </div>
+
+            {/* Search */}
+            <div>
+              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1 block">Buscar producto</label>
+              <div className="flex items-center gap-2">
+                <div className="relative flex-1">
+                  <Input
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder="Nombre, SKU o código de barras"
+                    className="bg-muted/20 border"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && suggestions[0]) handleAddItemClick(suggestions[0])
+                    }}
+                  />
+                  <button type="button" className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground" title="Escanear">
+                    <Camera className="w-5 h-5" />
+                  </button>
+                </div>
+                <Button
+                  type="button"
+                  onClick={() => { if (suggestions[0]) handleAddItemClick(suggestions[0]) }}
+                  className="h-10 px-4"
+                  variant="secondary"
+                >
+                  + Agregar
+                </Button>
+              </div>
+            </div>
+
+            {/* Products grid */}
+            {items.length === 0 ? (
+              <div className="p-4 rounded-lg bg-muted/10 border border-border/20 text-center text-sm text-muted-foreground">
+                No hay productos registrados. Agrega items desde el módulo de Items.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-64 overflow-y-auto pr-1">
+                {suggestions.slice(0, 12).map((it) => (
+                  <ItemSuggestion key={it.id} item={it} onAdd={handleAddItemClick} />
+                ))}
+              </div>
+            )}
+
+            {/* Payment method */}
+            <div>
+              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2 block">
+                Método de pago
+              </label>
+              <div className="grid grid-cols-3 gap-2">
+                {PAYMENT_METHODS.map(({ value, label, icon: Icon }) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setPaymentMethod(value)}
+                    className={`flex flex-col items-center gap-1 p-3 rounded-xl border text-sm font-medium transition-all ${paymentMethod === value
+                      ? "bg-primary/20 border-primary/50 text-primary shadow-sm shadow-primary/20"
+                      : "bg-muted/20 border-border text-muted-foreground hover:bg-muted/40"
+                      }`}
+                  >
+                    <Icon className="w-5 h-5" />
+                    <span className="text-xs">{label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* RIGHT: Cart + Totals */}
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                Carrito ({scanned.length} item{scanned.length !== 1 ? 's' : ''})
+              </span>
+              <button onClick={clear} className="text-xs text-muted-foreground hover:text-destructive flex items-center gap-1 transition-colors">
+                <X className="w-3 h-3" />Limpiar
               </button>
             </div>
-            <Button type="button" onClick={() => { if (suggestions[0]) addItem(suggestions[0]) }} className="h-10 px-3">Add</Button>
+
+            <ScannedList scanned={scanned} onRemove={removeItem} onChangeQty={changeQty} onAdd={addItem} />
+
+            <div className="mt-auto p-4 rounded-xl bg-muted/20 border border-border/30 space-y-2">
+              <div className="flex justify-between text-sm text-muted-foreground">
+                <span>Subtotal</span>
+                <span>${subtotal.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between text-lg font-bold border-t border-border/30 pt-2 mt-2">
+                <span>Total</span>
+                <span className="text-primary">${total.toFixed(2)}</span>
+              </div>
+
+              <div className="flex gap-2 pt-1">
+                <Button
+                  onClick={checkout}
+                  disabled={isCheckingOut || scanned.length === 0}
+                  className="flex-1 h-11 text-sm font-semibold bg-primary text-primary-foreground"
+                >
+                  {isCheckingOut ? (
+                    <><Loader2 className="w-4 h-4 animate-spin mr-2" />Procesando...</>
+                  ) : (
+                    `Cobrar $${total.toFixed(2)}`
+                  )}
+                </Button>
+                <Button
+                  onClick={clear}
+                  variant="ghost"
+                  className="h-11"
+                  disabled={isCheckingOut}
+                >
+                  Cancelar
+                </Button>
+              </div>
+            </div>
           </div>
 
-          {items.length === 0 ? (
-            <div className="mt-3 p-4 rounded-lg bg-muted/10 border border-border/20 text-center text-sm text-muted-foreground">
-              No hay productos registrados. Agrega items desde el módulo de Items.
-            </div>
-          ) : (
-            <div className="mt-3 grid gap-2">
-              {suggestions.slice(0, 6).map((it) => (
-                <ItemSuggestion key={it.id} item={it} onAdd={addItem} />
-              ))}
-            </div>
-          )}
-        </div>
-        <div>
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm">Items</span>
-            <button onClick={clear} className="text-xs hover:underline flex items-center gap-1"><X className="w-4 h-4" />Limpiar</button>
-          </div>
-
-          <ScannedList scanned={scanned} onRemove={removeItem} onChangeQty={changeQty} onAdd={addItem} />
-
-          <div className="mt-4 p-3 rounded-lg bg-muted/20 border border-border/20">
-            <div className="flex justify-between text-sm"><span>Subtotal</span><span>${subtotal.toFixed(2)}</span></div>
-            <div className="flex justify-between text-sm"><span>IVA (8%)</span><span>${tax.toFixed(2)}</span></div>
-            <div className="flex justify-between text-lg font-semibold mt-2"><span>Total</span><span className="text-primary">${total.toFixed(2)}</span></div>
-            <div className="flex gap-2 mt-3">
-              <Button onClick={() => alert(`Cobrar ${total.toFixed(2)} a ${customer || 'Cliente'}`)} className="flex-1 h-10 bg-primary text-primary-foreground">Cobrar</Button>
-              <Button onClick={clear} variant="ghost" className="h-10">Cancelar</Button>
-            </div>
-          </div>
-          </div>
         </div>
       </DndContext>
+
+      {selectedItemForMod && (
+        <ModifierModal
+          item={selectedItemForMod}
+          onClose={() => setSelectedItemForMod(null)}
+          onAdd={(item, modifiers) => {
+            addItem(item, modifiers)
+            setSelectedItemForMod(null)
+          }}
+        />
+      )}
     </div>
   )
 }

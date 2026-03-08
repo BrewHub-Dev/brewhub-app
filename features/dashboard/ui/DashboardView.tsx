@@ -22,7 +22,6 @@ export default function DashboardView() {
     )
   }
 
-  // Renderizar dashboard según el rol
   switch (user.role) {
     case "ADMIN":
       return <AdminDashboard />

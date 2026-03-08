@@ -25,9 +25,10 @@ export default function PersonalInfoCard({
       </h3>
       <div className="space-y-4">
         <div>
-          <label className="text-sm text-muted-foreground block mb-1 font-medium">Nombre Completo</label>
+          <label htmlFor="personal-nombre" className="text-sm text-muted-foreground block mb-1 font-medium">Nombre Completo</label>
           {isEditing ? (
             <input
+              id="personal-nombre"
               type="text"
               defaultValue={displayName}
               onChange={(e) => onNameChange?.(e.target.value)}
@@ -38,19 +39,20 @@ export default function PersonalInfoCard({
           )}
         </div>
         <div>
-          <label className="text-sm text-muted-foreground block mb-1 flex items-center gap-2 font-medium">
+          <span className="text-sm text-muted-foreground block mb-1 flex items-center gap-2 font-medium">
             <Mail className="w-4 h-4" />
             Email
-          </label>
+          </span>
           <p className="text-foreground">{email}</p>
         </div>
         <div>
-          <label className="text-sm text-muted-foreground block mb-1 flex items-center gap-2 font-medium">
+          <label htmlFor="personal-telefono" className="text-sm text-muted-foreground block mb-1 flex items-center gap-2 font-medium">
             <Phone className="w-4 h-4" />
             Teléfono
           </label>
           {isEditing ? (
             <input
+              id="personal-telefono"
               type="tel"
               defaultValue={phone}
               onChange={(e) => onPhoneChange?.(e.target.value)}

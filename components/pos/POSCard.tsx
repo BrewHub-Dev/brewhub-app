@@ -1,14 +1,21 @@
 "use client"
 
 import { DndContext } from '@dnd-kit/core'
+import { useQuery } from "@tanstack/react-query"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Camera, X } from "lucide-react"
+import { Camera, X, Loader2 } from "lucide-react"
 import { usePOS } from "./usePOS"
+import { getPOSItems } from "@/features/pos/api"
 import ItemSuggestion from "./ItemSuggestion"
 import ScannedList from "./ScannedList"
 
 export default function POSCard() {
+  const { data: items = [], isLoading } = useQuery({
+    queryKey: ["pos-items"],
+    queryFn: getPOSItems,
+  })
+
   const {
     query,
     setQuery,
@@ -23,7 +30,7 @@ export default function POSCard() {
     subtotal,
     tax,
     total,
-  } = usePOS()
+  } = usePOS(items)
 
   function handleDragEnd(event: any) {
     const { active, over } = event
@@ -38,6 +45,17 @@ export default function POSCard() {
     }
   }
 
+  if (isLoading) {
+    return (
+      <div className="glass-strong rounded-2xl p-6 shadow-2xl w-full flex items-center justify-center min-h-[300px]">
+        <div className="flex flex-col items-center gap-2 text-gray-600 dark:text-gray-400">
+          <Loader2 className="w-8 h-8 animate-spin" />
+          <span>Cargando productos...</span>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="glass-strong rounded-2xl p-6 shadow-2xl w-full">
       <h3 className="text-lg font-semibold mb-3 text-gray-900 dark:text-white">Punto de venta (POS)</h3>
@@ -45,13 +63,13 @@ export default function POSCard() {
       <DndContext onDragEnd={handleDragEnd}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-          <label className="text-sm text-gray-600 dark:text-gray-400 font-medium">Cliente</label>
-          <Input placeholder="Nombre del cliente (opcional)" value={customer} onChange={(e) => setCustomer(e.target.value)} className="mb-3 mt-1 glass border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-500" />
+          <span id="pos-customer" className="text-sm text-gray-600 dark:text-gray-400 font-medium">Cliente</span>
+          <Input id="pos-customer" placeholder="Nombre del cliente (opcional)" value={customer} onChange={(e) => setCustomer(e.target.value)} className="mb-3 mt-1 glass border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-500" />
 
-          <label className="text-sm text-gray-600 dark:text-gray-400 font-medium">Escanear QR / Buscar ítem</label>
+          <span id="pos-search" className="text-sm text-gray-600 dark:text-gray-400 font-medium">Escanear QR / Buscar ítem</span>
           <div className="flex items-center gap-2 mt-2">
             <div className="relative flex-1">
-              <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Ingresa nombre o código" className="glass border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-500" />
+              <Input id="pos-search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Ingresa nombre o código" className="glass border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-500" />
               <button type="button" className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-600 dark:text-gray-400" title="Simular escáner">
                 <Camera className="w-5 h-5" />
               </button>
@@ -59,11 +77,17 @@ export default function POSCard() {
             <Button type="button" onClick={() => { if (suggestions[0]) addItem(suggestions[0]) }} className="h-10 px-3 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-white shadow-lg">Add</Button>
           </div>
 
-          <div className="mt-3 grid gap-2">
-            {suggestions.slice(0, 6).map((it) => (
-              <ItemSuggestion key={it.id} item={it} onAdd={addItem} />
-            ))}
-          </div>
+          {items.length === 0 ? (
+            <div className="mt-3 p-4 rounded-xl glass text-center text-sm text-gray-600 dark:text-gray-400">
+              No hay productos registrados. Agrega items desde el módulo de Items.
+            </div>
+          ) : (
+            <div className="mt-3 grid gap-2">
+              {suggestions.slice(0, 6).map((it) => (
+                <ItemSuggestion key={it.id} item={it} onAdd={addItem} />
+              ))}
+            </div>
+          )}
         </div>
         <div>
           <div className="flex items-center justify-between mb-2">

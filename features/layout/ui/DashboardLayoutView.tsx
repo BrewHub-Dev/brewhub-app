@@ -1,17 +1,17 @@
 "use client"
+
 import { ReactNode, useMemo } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import {
-  LogOut,
-  Coffee,
-  User
-} from "lucide-react"
+import { LogOut, Coffee, User } from "lucide-react"
+
 import { useAuth } from "@/lib/auth-store"
 import { usePermissions } from "@/lib/hooks/usePermissions"
 import { useLogout } from "@/features/auth/api"
+
 import ShopAvatar from "@/features/avatar/ui/ShopAvatar"
 import { useUserData } from "@/features/avatar/api"
+
 import { navigationItems, filterNavItemsByPermissions } from "../config/navigation"
 import ThemeSwitcher from "@/features/theme/ui/ThemeSwitcher"
 
@@ -24,20 +24,55 @@ export default function DashboardLayoutView({ children }: Readonly<DashboardLayo
   const { user } = useAuth()
   const { can } = usePermissions()
   const logoutMutation = useLogout()
+
   const userId = user?._id
   const { data: userData } = useUserData(userId)
 
-  const branchName = userData?.branch?.name ?? "Sucursal"
   const shopId = user?.ShopId ?? userData?.ShopId
 
-  let displayName = ""
-  if (user) {
+  const displayName = useMemo(() => {
+    if (!user) return "Usuario"
+
     const first = user?.name
     const last = user?.lastName
-    displayName = [first, last].filter(Boolean).join(" ") || user.emailAddress || "Usuario"
-  }
 
-  // Filtrar items de navegación según permisos del usuario
+    return [first, last].filter(Boolean).join(" ") || user.emailAddress || "Usuario"
+  }, [user])
+
+
+  const { shopName, subtitle } = useMemo(() => {
+    const shopName = userData?.shop?.name ?? "Tienda"
+
+    if (!userData) {
+      return {
+        shopName,
+        subtitle: "Sucursal",
+      }
+    }
+
+    if (userData.role === "SHOP_ADMIN") {
+      return {
+        shopName,
+        subtitle: "Encargado de la tienda",
+      }
+    }
+
+    if (userData.role === "BRANCH_ADMIN") {
+      return {
+        shopName,
+        subtitle: userData.branch?.name
+          ? `Sucursal: ${userData.branch.name}`
+          : "Sucursal",
+      }
+    }
+
+    return {
+      shopName,
+      subtitle: userData.branch?.name ?? "Sucursal",
+    }
+  }, [userData])
+
+
   const navItems = useMemo(() => {
     return filterNavItemsByPermissions(navigationItems, can)
   }, [can])
@@ -57,14 +92,19 @@ export default function DashboardLayoutView({ children }: Readonly<DashboardLayo
                 <Coffee className="w-5 h-5 text-primary" />
               )}
             </div>
+
             <div>
-              <h2 className="font-semibold text-sm text-foreground">BrewHub</h2>
-              <p className="text-xs text-muted-foreground">{branchName}</p>
+              <h2 className="font-semibold text-sm text-foreground">
+                {shopName}
+              </h2>
+
+              <p className="text-xs text-muted-foreground">
+                {subtitle}
+              </p>
             </div>
           </div>
         </div>
 
-        {/* Navigation */}
         <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
           {navItems.map((item) => {
             const Icon = item.icon
@@ -87,22 +127,27 @@ export default function DashboardLayoutView({ children }: Readonly<DashboardLayo
           })}
         </nav>
 
-        {/* Theme Switcher */}
         <div className="p-4 border-t border-border/50">
           <ThemeSwitcher />
         </div>
 
-        {/* User Section */}
         <div className="p-4 border-t border-border/50">
           <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-muted/50 mb-2">
             <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
               <User className="w-4 h-4 text-primary" />
             </div>
+
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate text-foreground">{displayName}</p>
-              <p className="text-xs text-muted-foreground truncate">{user?.emailAddress}</p>
+              <p className="text-sm font-medium truncate text-foreground">
+                {displayName}
+              </p>
+
+              <p className="text-xs text-muted-foreground truncate">
+                {user?.emailAddress}
+              </p>
             </div>
           </div>
+
           <button
             onClick={() => logoutMutation.mutate()}
             disabled={logoutMutation.isPending}
@@ -114,7 +159,6 @@ export default function DashboardLayoutView({ children }: Readonly<DashboardLayo
         </div>
       </aside>
 
-      {/* Main Content */}
       <main className="flex-1 overflow-auto bg-transparent">
         {children}
       </main>

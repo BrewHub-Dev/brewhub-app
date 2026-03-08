@@ -1,8 +1,3 @@
-/**
- * RBAC (Role-Based Access Control) para BrewHub
- * Sistema centralizado de control de acceso basado en roles
- */
-
 export type { Permission } from "./permissions";
 export {
   ROLE_PERMISSIONS,

@@ -15,6 +15,32 @@ function extractErrorMessage(data: unknown, fallback: string) {
   return fallback;
 }
 
+/**
+ * Obtiene el tenantId activo del usuario guardado en localStorage.
+ * Esto es requerido por el backend para todos los endpoints multi-tenant.
+ */
+function getTenantId(): string | null {
+  try {
+    if (typeof window === "undefined") return null;
+    const rawUser = localStorage.getItem("bh_user");
+    if (!rawUser) return null;
+    const user = JSON.parse(rawUser);
+    // ShopId es el tenantId principal del usuario
+    return user?.ShopId ?? user?.tenantId ?? null;
+  } catch {
+    return null;
+  }
+}
+
+function buildHeaders(extra: Record<string, string> = {}): Record<string, string> {
+  const headers: Record<string, string> = { ...extra };
+  const tenantId = getTenantId();
+  if (tenantId) {
+    headers["X-Tenant-Id"] = tenantId;
+  }
+  return headers;
+}
+
 export async function post<T = any>(path: string, body: any) {
   const url = buildUrl(path);
 
@@ -23,7 +49,7 @@ export async function post<T = any>(path: string, body: any) {
     res = await fetch(url, {
       method: "POST",
       credentials: "include",
-      headers: { "Content-Type": "application/json" },
+      headers: buildHeaders({ "Content-Type": "application/json" }),
       body: JSON.stringify(body),
     });
   } catch (error) {
@@ -52,6 +78,7 @@ export async function get<T = any>(path: string) {
   try {
     res = await fetch(url, {
       credentials: "include",
+      headers: buildHeaders(),
     });
   } catch (error) {
     throw new Error(`No se puede conectar al servidor (${BASE}). Verifica que el backend esté corriendo.`);
@@ -81,7 +108,7 @@ export async function put<T = any>(path: string, body: any) {
     res = await fetch(url, {
       method: "PUT",
       credentials: "include",
-      headers: { "Content-Type": "application/json" },
+      headers: buildHeaders({ "Content-Type": "application/json" }),
       body: JSON.stringify(body),
     });
   } catch (error) {
@@ -112,7 +139,7 @@ export async function patch<T = any>(path: string, body: any) {
     res = await fetch(url, {
       method: "PATCH",
       credentials: "include",
-      headers: { "Content-Type": "application/json" },
+      headers: buildHeaders({ "Content-Type": "application/json" }),
       body: JSON.stringify(body),
     });
   } catch (error) {
@@ -143,6 +170,7 @@ export async function del<T = any>(path: string) {
     res = await fetch(url, {
       method: "DELETE",
       credentials: "include",
+      headers: buildHeaders(),
     });
   } catch (error) {
     throw new Error(`No se puede conectar al servidor (${BASE}). Verifica que el backend esté corriendo.`);

@@ -74,10 +74,11 @@ export default function BranchForm({ branch, onClose }: Readonly<BranchFormProps
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="text-sm text-muted-foreground block mb-2 font-medium">
+            <label htmlFor="branch-name" className="text-sm text-muted-foreground block mb-2 font-medium">
               Nombre *
             </label>
             <input
+              id="branch-name"
               type="text"
               value={formData.name}
               onChange={(e) =>
@@ -89,10 +90,11 @@ export default function BranchForm({ branch, onClose }: Readonly<BranchFormProps
           </div>
 
           <div>
-            <label className="text-sm text-muted-foreground block mb-2 font-medium">
+            <label htmlFor="branch-street" className="text-sm text-muted-foreground block mb-2 font-medium">
               Calle
             </label>
             <input
+              id="branch-street"
               type="text"
               value={formData.address?.street || ""}
               onChange={(e) =>
@@ -108,10 +110,11 @@ export default function BranchForm({ branch, onClose }: Readonly<BranchFormProps
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-sm text-muted-foreground block mb-2 font-medium">
+              <label htmlFor="branch-city" className="text-sm text-muted-foreground block mb-2 font-medium">
                 Ciudad
               </label>
               <input
+                id="branch-city"
                 type="text"
                 value={formData.address?.city || ""}
                 onChange={(e) =>
@@ -126,10 +129,11 @@ export default function BranchForm({ branch, onClose }: Readonly<BranchFormProps
             </div>
 
             <div>
-              <label className="text-sm text-muted-foreground block mb-2 font-medium">
+              <label htmlFor="branch-state" className="text-sm text-muted-foreground block mb-2 font-medium">
                 Estado
               </label>
               <input
+                id="branch-state"
                 type="text"
                 value={formData.address?.state || ""}
                 onChange={(e) =>
@@ -146,10 +150,11 @@ export default function BranchForm({ branch, onClose }: Readonly<BranchFormProps
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-sm text-muted-foreground block mb-2 font-medium">
+              <label htmlFor="branch-zip" className="text-sm text-muted-foreground block mb-2 font-medium">
                 Código Postal
               </label>
               <input
+                id="branch-zip"
                 type="text"
                 value={formData.address?.zip || ""}
                 onChange={(e) =>
@@ -164,10 +169,11 @@ export default function BranchForm({ branch, onClose }: Readonly<BranchFormProps
             </div>
 
             <div>
-              <label className="text-sm text-muted-foreground block mb-2 font-medium">
+              <label htmlFor="branch-country" className="text-sm text-muted-foreground block mb-2 font-medium">
                 País (ISO)
               </label>
               <input
+                id="branch-country"
                 type="text"
                 value={formData.address?.country || ""}
                 onChange={(e) =>
@@ -184,10 +190,11 @@ export default function BranchForm({ branch, onClose }: Readonly<BranchFormProps
           </div>
 
           <div>
-            <label className="text-sm text-muted-foreground block mb-2 font-medium">
+            <label htmlFor="branch-phone" className="text-sm text-muted-foreground block mb-2 font-medium">
               Teléfono
             </label>
             <input
+              id="branch-phone"
               type="tel"
               value={formData.phone}
               onChange={(e) =>

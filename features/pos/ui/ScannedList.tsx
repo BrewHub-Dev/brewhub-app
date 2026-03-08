@@ -1,12 +1,12 @@
 "use client"
 
 import React from "react"
-import { Scanned } from "./usePOS"
+import { Scanned } from "../types"
 import ScannedItem from "./ScannedItem"
 import { useDroppable } from '@dnd-kit/core'
 
 export default function ScannedList({ scanned, onRemove, onChangeQty, onAdd }: Readonly<{ scanned: Scanned[]; onRemove: (id: string) => void; onChangeQty: (id: string, qty: number) => void; onAdd?: (item: any) => void }>) {
-  const {isOver, setNodeRef} = useDroppable({ id: 'scanned' })
+  const { isOver, setNodeRef } = useDroppable({ id: 'scanned' })
 
   return (
     <div data-drop="pos-scanned" ref={setNodeRef} className={`max-h-56 overflow-auto divide-y divide-border/20 rounded-lg ${isOver ? 'ring-2 ring-primary/40' : ''}`}>

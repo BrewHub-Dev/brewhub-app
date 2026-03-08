@@ -19,7 +19,6 @@ export default function ThemeSwitcher() {
   const [open, setOpen] = useState(false)
   const panelRef = useRef<HTMLDivElement>(null)
 
-  // Close on outside click
   useEffect(() => {
     if (!open) return
 

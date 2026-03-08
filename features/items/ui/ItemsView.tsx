@@ -123,7 +123,6 @@ export default function ItemsView() {
                   code: editingItem.code || editingItem.sku || editingItem.barcode || '',
                   price: editingItem.price,
                   categoryId: typeof editingItem.category === 'object' ? editingItem.category._id || '' : editingItem.categoryId || '',
-                  stock: editingItem.stock || 0,
                   description: editingItem.description,
                 } : undefined}
                 onSubmit={editingItem ? handleUpdate : handleCreate}

@@ -20,7 +20,6 @@ export function LoginForm() {
         emailAddress: email,
         password,
       });
-      // Login exitoso, redirige a dashboard
       router.push("/dashboard");
     } catch (err) {
       const message = err instanceof Error ? err.message : "Login failed";

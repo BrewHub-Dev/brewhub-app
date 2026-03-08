@@ -1,9 +1,5 @@
 import type { UserRole } from "../types";
 
-/**
- * Permisos granulares del sistema BrewHub
- * Formato: "recurso:acción"
- */
 export type Permission =
   // Dashboard
   | "dashboard:view"
@@ -55,10 +51,14 @@ export type Permission =
   | "orders:create"
   | "orders:cancel"
 
-  |"categories:view"
-  |"categories:create"
-  |"categories:edit"
-  |"categories:delete"
+  | "categories:view"
+  | "categories:create"
+  | "categories:edit"
+  | "categories:delete"
+
+  // Invitaciones
+  | "invitations:view"
+  | "invitations:manage"
 
   // Perfil
   | "profile:view"
@@ -122,6 +122,16 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "orders:create",
     "orders:cancel",
 
+    // Categorías
+    "categories:view",
+    "categories:create",
+    "categories:edit",
+    "categories:delete",
+
+    // Invitaciones
+    "invitations:view",
+    "invitations:manage",
+
     // Perfil
     "profile:view",
     "profile:edit",
@@ -184,6 +194,10 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "categories:create",
     "categories:edit",
     "categories:delete",
+
+    // Invitaciones
+    "invitations:view",
+    "invitations:manage",
   ],
 
   /**

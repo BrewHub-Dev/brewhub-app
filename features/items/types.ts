@@ -23,7 +23,6 @@ export interface Item {
   taxIncluded?: boolean
   images?: string[]
   modifiers?: ItemModifier[]
-  stock?: number
   id?: string
   code?: string
   category?: {
@@ -41,7 +40,6 @@ export interface ItemFormData {
   code: string
   price: number
   categoryId: string
-  stock: number
   description?: string
 }
 

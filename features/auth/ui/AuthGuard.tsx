@@ -15,19 +15,15 @@ export default function AuthGuard({ mode, children }: Readonly<AuthGuardProps>) 
   const { isAuthenticated, initialized, setAuth } = useAuth();
   const sessionQuery = useSession();
 
-  // Sincronizar con la sesión del backend
   useEffect(() => {
     if (!initialized) return;
     if (sessionQuery.isLoading) return;
     
-    // Si el backend retorna sesión válida pero el estado local no tiene auth
     if (sessionQuery.data && sessionQuery.data.user && !isAuthenticated) {
-      // Extraer el token y sincronizar
       const token = sessionQuery.data.id || "valid";
       setAuth(token, sessionQuery.data.user);
     }
     
-    // Si el backend NO tiene sesión pero el estado local sí
     if (!sessionQuery.data && isAuthenticated) {
       setAuth(null, null);
     }

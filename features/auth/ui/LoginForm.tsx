@@ -18,7 +18,6 @@ export function LoginForm() {
     try {
       await mutation.mutateAsync({ emailAddress: email, password })
     } catch (err) {
-      // El error ya está manejado en el hook useLogin con el toast
       console.error('Login error:', err)
     }
   }
@@ -38,7 +37,7 @@ export function LoginForm() {
         <div className="rounded-3xl p-8 border border-border/20 bg-muted/20 backdrop-blur-3xl shadow-[0_20px_50px_rgba(2,6,23,0.6)] transition-transform transform">
           <div className="text-center mb-8">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-tr from-primary/25 to-rose-400/15 border border-border/20 mb-6">
-              <img src="/images/Subject.png" alt="BrewHub Logo" width={140} height={140} className="w-full h-full object-contain" />
+              <img src="/images/Subject.png" alt="Brewsy Logo" width={140} height={140} className="w-full h-full object-contain" />
             </div>
             <h1 className="text-2xl font-semibold text-white tracking-tight">Bienvenido</h1>
             <p className="mt-2 text-white/75 text-sm">Ingresa a tu cuenta para continuar</p>
@@ -61,7 +60,7 @@ export function LoginForm() {
                   aria-label="Correo electrónico"
                   required
                 />
-                <p className="text-xs text-white/50 mt-1">Usa el correo con el que te registraste en BrewHub.</p>
+                <p className="text-xs text-white/50 mt-1">Usa el correo con el que te registraste en Brewsy.</p>
               </div>
             </div>
 

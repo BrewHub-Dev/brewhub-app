@@ -96,10 +96,11 @@ export default function UserForm({ user, onClose }: Readonly<UserFormProps>) {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-sm text-muted-foreground block mb-2 font-medium">
+              <label htmlFor="user-name" className="text-sm text-muted-foreground block mb-2 font-medium">
                 Nombre *
               </label>
               <input
+                id="user-name"
                 type="text"
                 value={formData.name}
                 onChange={(e) =>
@@ -111,10 +112,11 @@ export default function UserForm({ user, onClose }: Readonly<UserFormProps>) {
             </div>
 
             <div>
-              <label className="text-sm text-muted-foreground block mb-2 font-medium">
+              <label htmlFor="user-lastname" className="text-sm text-muted-foreground block mb-2 font-medium">
                 Apellido *
               </label>
               <input
+                id="user-lastname"
                 type="text"
                 value={formData.lastName}
                 onChange={(e) =>
@@ -128,10 +130,11 @@ export default function UserForm({ user, onClose }: Readonly<UserFormProps>) {
 
           {!user && (
             <div>
-              <label className="text-sm text-muted-foreground block mb-2 font-medium">
+              <label htmlFor="user-username" className="text-sm text-muted-foreground block mb-2 font-medium">
                 Username *
               </label>
               <input
+                id="user-username"
                 type="text"
                 value={formData.username}
                 onChange={(e) =>
@@ -145,10 +148,11 @@ export default function UserForm({ user, onClose }: Readonly<UserFormProps>) {
           )}
 
           <div>
-            <label className="text-sm text-muted-foreground block mb-2 font-medium">
+            <label htmlFor="user-email" className="text-sm text-muted-foreground block mb-2 font-medium">
               Email *
             </label>
             <input
+              id="user-email"
               type="email"
               value={formData.emailAddress}
               onChange={(e) =>
@@ -161,10 +165,11 @@ export default function UserForm({ user, onClose }: Readonly<UserFormProps>) {
 
           {!user && (
             <div>
-              <label className="text-sm text-muted-foreground block mb-2 font-medium">
+              <label htmlFor="user-phone" className="text-sm text-muted-foreground block mb-2 font-medium">
                 Teléfono *
               </label>
               <input
+                id="user-phone"
                 type="tel"
                 value={formData.phone}
                 onChange={(e) =>
@@ -178,10 +183,11 @@ export default function UserForm({ user, onClose }: Readonly<UserFormProps>) {
           )}
 
           <div>
-            <label className="text-sm text-muted-foreground block mb-2 font-medium">
+            <label htmlFor="user-role" className="text-sm text-muted-foreground block mb-2 font-medium">
               Rol *
             </label>
             <select
+              id="user-role"
               value={formData.role}
               onChange={(e) => {
                 const newRole = e.target.value as UserFormData["role"];
@@ -203,10 +209,11 @@ export default function UserForm({ user, onClose }: Readonly<UserFormProps>) {
 
           {roleRequiresBranch && (
             <div>
-              <label className="text-sm text-muted-foreground block mb-2 font-medium">
+              <label htmlFor="user-branch" className="text-sm text-muted-foreground block mb-2 font-medium">
                 Sucursal *
               </label>
               <select
+                id="user-branch"
                 value={formData.BranchId || ""}
                 onChange={(e) =>
                   setFormData({ ...formData, BranchId: e.target.value })
@@ -226,10 +233,11 @@ export default function UserForm({ user, onClose }: Readonly<UserFormProps>) {
 
           {!user && (
             <div>
-              <label className="text-sm text-muted-foreground block mb-2 font-medium">
+              <label htmlFor="user-password" className="text-sm text-muted-foreground block mb-2 font-medium">
                 Contraseña *
               </label>
               <input
+                id="user-password"
                 type="password"
                 value={formData.password}
                 onChange={(e) =>
