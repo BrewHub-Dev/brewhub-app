@@ -20,6 +20,7 @@ export async function login(credentials: LoginRequest): Promise<LoginResponse> {
   const data: LoginResponse = await res.json();
 
   localStorage.setItem("bh_user", JSON.stringify(data.user));
+  if (data.token) localStorage.setItem("bh_token", data.token);
 
   return data;
 }

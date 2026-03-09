@@ -55,7 +55,7 @@ export function AuthProvider({ children }: Readonly<{ children: React.ReactNode 
     try {
       const response = await authServiceLogin(credentials);
       setUser(response.user);
-      setToken("session");
+      setToken(response.token);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Login failed";
       setError(message);

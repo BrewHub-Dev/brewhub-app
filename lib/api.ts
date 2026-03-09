@@ -32,11 +32,24 @@ function getTenantId(): string | null {
   }
 }
 
+function getToken(): string | null {
+  try {
+    if (typeof window === "undefined") return null;
+    return localStorage.getItem("bh_token");
+  } catch {
+    return null;
+  }
+}
+
 function buildHeaders(extra: Record<string, string> = {}): Record<string, string> {
   const headers: Record<string, string> = { ...extra };
   const tenantId = getTenantId();
   if (tenantId) {
     headers["X-Tenant-Id"] = tenantId;
+  }
+  const token = getToken();
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
   }
   return headers;
 }
