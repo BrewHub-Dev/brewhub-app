@@ -4,7 +4,6 @@ import api from "@/lib/api";
 export async function getItems(): Promise<Item[]> {
   try {
     const response = await api.get("/items");
-    console.log("Items obtenidos desde backend:", response);
 
     if (!response) {
       console.warn("No hay datos en la respuesta");
@@ -14,7 +13,6 @@ export async function getItems(): Promise<Item[]> {
     const data = Array.isArray(response) ? response : [];
 
     if (data.length === 0) {
-      console.log("No se encontraron items");
       return [];
     }
 
@@ -25,7 +23,6 @@ export async function getItems(): Promise<Item[]> {
       image: item.images?.[0],
     }));
 
-    console.log(`${items.length} items normalizados:`, items);
     return items;
   } catch (err) {
     console.error("Error al obtener items:", err);
@@ -37,8 +34,6 @@ export async function getItems(): Promise<Item[]> {
 
 export async function createItem(data: ItemFormData): Promise<Item> {
   try {
-    console.log("Creando item:", data)
-
     const itemData = {
       name: data.name,
       description: data.description,

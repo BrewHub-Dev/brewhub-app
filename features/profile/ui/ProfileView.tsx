@@ -49,7 +49,6 @@ export default function ProfileView() {
           <p className="text-muted-foreground">Gestiona tu información personal y preferencias</p>
         </div>
 
-        {/* Profile Header */}
         <div className="glass rounded-2xl p-8 mb-6 hover:shadow-2xl transition-all">
           <div className="flex items-start gap-6">
             <div className="w-24 h-24 rounded-full bg-primary/20 border border-border/20 flex items-center justify-center overflow-hidden">
@@ -75,7 +74,6 @@ export default function ProfileView() {
           </div>
         </div>
 
-        {/* Profile Information */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           <PersonalInfoCard
             displayName={displayName}
@@ -90,13 +88,11 @@ export default function ProfileView() {
           />
         </div>
 
-        {/* Preferences */}
         <PreferencesCard
           preferences={preferences}
           onPreferenceChange={handlePreferenceChange}
         />
 
-        {/* Save Button */}
         {isEditing && (
           <div className="flex justify-end gap-4">
             <button

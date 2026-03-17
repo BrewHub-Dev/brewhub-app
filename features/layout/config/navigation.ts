@@ -8,6 +8,7 @@ import {
   ClipboardList,
   Tag,
   QrCode,
+  ScanLine,
   type LucideIcon,
 } from "lucide-react";
 import type { Permission } from "@/lib/rbac";
@@ -45,6 +46,12 @@ export const navigationItems: NavItem[] = [
     name: "Punto de Venta",
     href: "/dashboard/pos",
     icon: ShoppingCart,
+    permission: "pos:use",
+  },
+  {
+    name: "Escanear QR",
+    href: "/dashboard/qr-scanner",
+    icon: ScanLine,
     permission: "pos:use",
   },
   {

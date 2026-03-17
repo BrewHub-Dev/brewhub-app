@@ -19,8 +19,8 @@ export default function ShopAvatar({ shopId, fallback }: Readonly<Props>) {
     <img
       src={shop.image}
       alt={shop.name ?? "Shop Avatar"}
-      width={48}
-      height={48}
+      width={'100%'}
+      height={'100%'}
       className="object-cover w-12 h-12"
     />
   );
