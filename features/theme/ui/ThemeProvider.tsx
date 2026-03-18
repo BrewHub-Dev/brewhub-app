@@ -44,7 +44,6 @@ export function ThemeProvider({ children }: Readonly<{ children: ReactNode }>) {
   const committedConfigRef = useRef<ThemeConfig>(config)
   const previousPresetRef = useRef<ThemePreset | undefined>(undefined)
 
-  // On mount: load persisted config and apply
   useEffect(() => {
     const saved = loadConfig()
     setConfig(saved)

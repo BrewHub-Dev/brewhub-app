@@ -92,18 +92,12 @@ export function canAccessShop(scope: DataScope, shopId: string): boolean {
   return scope.shopIds.includes(shopId);
 }
 
-/**
- * Verifica si el usuario puede acceder a una sucursal específica
- */
 export function canAccessBranch(scope: DataScope, branchId: string): boolean {
   if (scope.canViewAllShops) return true;
-  if (!scope.branchIds) return scope.canViewShop; // Shop admin puede ver todas sus sucursales
+  if (!scope.branchIds) return scope.canViewShop;
   return scope.branchIds.includes(branchId);
 }
 
-/**
- * Obtiene el nivel de acceso del usuario
- */
 export function getAccessLevel(role: UserRole): "global" | "shop" | "branch" | "user" {
   switch (role) {
     case "ADMIN":

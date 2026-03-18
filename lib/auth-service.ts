@@ -51,7 +51,6 @@ export async function validateSession(): Promise<User | null> {
       return null;
     }
 
-    // La sesión es válida, retorna el usuario del localStorage si está disponible
     const raw = localStorage.getItem("bh_user");
     return raw ? JSON.parse(raw) : null;
   } catch (err) {

@@ -1,5 +1,5 @@
 import { Item } from "../types"
-import { Edit2, Trash2, Image as ImageIcon } from "lucide-react"
+import { Edit2, Trash2, Image as ImageIcon, Layers } from "lucide-react"
 
 interface ItemsTableProps {
   items: Item[]
@@ -18,6 +18,8 @@ export default function ItemsTable({ items, onEdit, onDelete }: Readonly<ItemsTa
               <th className="text-left py-4 px-6 text-sm font-medium text-muted-foreground">Nombre</th>
               <th className="text-left py-4 px-6 text-sm font-medium text-muted-foreground">Categoría</th>
               <th className="text-left py-4 px-6 text-sm font-medium text-muted-foreground">Precio</th>
+              <th className="text-left py-4 px-6 text-sm font-medium text-muted-foreground">Modificadores</th>
+              <th className="text-left py-4 px-6 text-sm font-medium text-muted-foreground">Estado</th>
               <th className="text-left py-4 px-6 text-sm font-medium text-muted-foreground">Acciones</th>
             </tr>
           </thead>
@@ -34,6 +36,8 @@ export default function ItemsTable({ items, onEdit, onDelete }: Readonly<ItemsTa
                 const itemCode = item.code || item.sku || item.barcode
                 const itemCategory = item.category?.name
                 const itemImage = item.images?.[0]
+
+                const modifierCount = item.modifiers?.length ?? 0
 
                 return (
                   <tr key={itemId} className="border-t border-border/50 hover:bg-muted/30 transition-all">
@@ -61,7 +65,7 @@ export default function ItemsTable({ items, onEdit, onDelete }: Readonly<ItemsTa
                         <div>
                           <span className="font-medium text-foreground">{item.name}</span>
                           {item.description && (
-                            <p className="text-xs text-muted-foreground">{item.description}</p>
+                            <p className="text-xs text-muted-foreground truncate max-w-[200px]">{item.description}</p>
                           )}
                         </div>
                       </div>
@@ -71,6 +75,27 @@ export default function ItemsTable({ items, onEdit, onDelete }: Readonly<ItemsTa
                     </td>
                     <td className="py-4 px-6">
                       <span className="font-semibold text-primary">${item.price.toFixed(2)}</span>
+                    </td>
+                    <td className="py-4 px-6">
+                      {modifierCount > 0 ? (
+                        <span className="inline-flex items-center gap-1 text-xs bg-primary/10 text-primary px-2 py-1 rounded-full font-medium">
+                          <Layers className="w-3 h-3" />
+                          {modifierCount}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">—</span>
+                      )}
+                    </td>
+                    <td className="py-4 px-6">
+                      {item.active !== false ? (
+                        <span className="inline-flex items-center text-xs bg-green-500/10 text-green-500 px-2 py-1 rounded-full font-medium">
+                          Activo
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center text-xs bg-muted/50 text-muted-foreground px-2 py-1 rounded-full font-medium">
+                          Inactivo
+                        </span>
+                      )}
                     </td>
                     <td className="py-4 px-6">
                       <div className="flex items-center gap-2">

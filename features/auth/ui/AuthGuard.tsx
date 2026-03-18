@@ -43,7 +43,6 @@ export default function AuthGuard({ mode, children }: Readonly<AuthGuardProps>) 
     }
   }, [initialized, sessionQuery.isLoading, sessionQuery.data, mode, router]);
 
-  // Mostrar loading mientras verifica sesión
   if (!initialized || sessionQuery.isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">

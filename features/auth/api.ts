@@ -119,8 +119,6 @@ export function useLogout() {
       logout();
       queryClient.setQueryData(["session"], null);
       showToast("success", "Sesión cerrada correctamente");
-      
-      // El AuthGuard detectará automáticamente el cambio y redirigirá a "/"
     },
     onError(err: Error) {
       const message = err?.message || (typeof err === "string" ? err : "Error cerrando sesión");

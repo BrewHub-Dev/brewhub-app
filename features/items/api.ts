@@ -1,5 +1,5 @@
 import { Item, ItemFormData } from "./types"
-import api from "@/lib/api";
+import api, { BASE } from "@/lib/api";
 
 export async function getItems(): Promise<Item[]> {
   try {
@@ -32,6 +32,27 @@ export async function getItems(): Promise<Item[]> {
 
 
 
+export async function uploadItemImage(file: File): Promise<{ url: string; publicId: string }> {
+  const token = typeof window !== "undefined" ? localStorage.getItem("bh_token") : null
+  const rawUser = typeof window !== "undefined" ? localStorage.getItem("bh_user") : null
+  const user = rawUser ? JSON.parse(rawUser) : null
+  const tenantId = user?.ShopId ?? user?.tenantId ?? null
+
+  const formData = new FormData()
+  formData.append("file", file)
+
+  const headers: Record<string, string> = {}
+  if (token) headers["Authorization"] = `Bearer ${token}`
+  if (tenantId) headers["X-Tenant-Id"] = tenantId
+
+  const url = `${BASE.replace(/\/+$/, "")}/upload/image`
+  const res = await fetch(url, { method: "POST", credentials: "include", headers, body: formData })
+
+  const data = await res.json()
+  if (!res.ok) throw new Error(data.error || "Error al subir imagen")
+  return data as { url: string; publicId: string }
+}
+
 export async function createItem(data: ItemFormData): Promise<Item> {
   try {
     const itemData = {
@@ -40,15 +61,15 @@ export async function createItem(data: ItemFormData): Promise<Item> {
       sku: data.code,
       barcode: data.code,
       price: data.price,
+      cost: data.cost,
       categoryId: data.categoryId,
-      active: true,
-      taxIncluded: false,
-      images: [],
-      modifiers: [],
+      active: data.active,
+      taxIncluded: data.taxIncluded,
+      images: data.images,
+      modifiers: data.modifiers,
     }
 
     const response = await api.post("/items", itemData)
-    console.log("Item creado:", response)
 
     return {
       ...response,
@@ -64,19 +85,19 @@ export async function createItem(data: ItemFormData): Promise<Item> {
 
 export async function updateItem(id: string, data: Partial<ItemFormData>): Promise<Item> {
   try {
-    console.log("Actualizando item:", id, data)
-
-    const itemData = {
-      name: data.name,
-      description: data.description,
-      sku: data.code,
-      barcode: data.code,
-      price: data.price,
-      categoryId: data.categoryId,
-    }
+    const itemData: Record<string, unknown> = {}
+    if (data.name !== undefined) itemData.name = data.name
+    if (data.description !== undefined) itemData.description = data.description
+    if (data.code !== undefined) { itemData.sku = data.code; itemData.barcode = data.code }
+    if (data.price !== undefined) itemData.price = data.price
+    if (data.cost !== undefined) itemData.cost = data.cost
+    if (data.categoryId !== undefined) itemData.categoryId = data.categoryId
+    if (data.active !== undefined) itemData.active = data.active
+    if (data.taxIncluded !== undefined) itemData.taxIncluded = data.taxIncluded
+    if (data.images !== undefined) itemData.images = data.images
+    if (data.modifiers !== undefined) itemData.modifiers = data.modifiers
 
     const response = await api.patch(`/items/${id}`, itemData)
-    console.log("Item actualizado:", response)
 
     return {
       ...response,

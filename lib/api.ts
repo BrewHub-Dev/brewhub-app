@@ -1,4 +1,4 @@
-const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/";
+export const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/";
 
 function buildUrl(path: string) {
   return path.startsWith("http")
@@ -78,6 +78,7 @@ export async function post<T = any>(path: string, body: any) {
   }
 
   if (!res.ok) {
+    if (res.status === 401) redirectToLogin();
     const message = extractErrorMessage(data, res.statusText || "Request failed");
     throw new Error(message);
   }
@@ -106,6 +107,7 @@ export async function get<T = any>(path: string) {
   }
 
   if (!res.ok) {
+    if (res.status === 401) redirectToLogin();
     const message = extractErrorMessage(data, res.statusText || "Request failed");
     throw new Error(message);
   }
@@ -137,6 +139,7 @@ export async function put<T = any>(path: string, body: any) {
   }
 
   if (!res.ok) {
+    if (res.status === 401) redirectToLogin();
     const message = extractErrorMessage(data, res.statusText || "Request failed");
     throw new Error(message);
   }
@@ -168,6 +171,7 @@ export async function patch<T = any>(path: string, body: any) {
   }
 
   if (!res.ok) {
+    if (res.status === 401) redirectToLogin();
     const message = extractErrorMessage(data, res.statusText || "Request failed");
     throw new Error(message);
   }
@@ -198,11 +202,22 @@ export async function del<T = any>(path: string) {
   }
 
   if (!res.ok) {
+    if (res.status === 401) redirectToLogin();
     const message = extractErrorMessage(data, res.statusText || "Request failed");
     throw new Error(message);
   }
 
   return data as T;
+}
+
+function redirectToLogin() {
+  try {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("bh_token");
+      localStorage.removeItem("bh_user");
+      window.location.href = "/home";
+    }
+  } catch {}
 }
 
 export default { post, get, put, patch, del };

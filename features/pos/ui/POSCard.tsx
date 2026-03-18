@@ -105,7 +105,6 @@ export default function POSCard() {
     )
   }
 
-  // Orden confirmada
   if (lastOrder) {
     return (
       <div className="rounded-2xl p-8 glass border shadow-lg w-full flex flex-col items-center justify-center min-h-[400px] gap-4">
@@ -131,7 +130,6 @@ export default function POSCard() {
         <h3 className="text-lg font-semibold">Punto de Venta (POS)</h3>
       </div>
 
-      {/* Error banner */}
       {error && (
         <div className="mb-4 flex items-center gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm">
           <AlertCircle className="w-4 h-4 shrink-0" />
@@ -143,10 +141,8 @@ export default function POSCard() {
       <DndContext onDragEnd={handleDragEnd}>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-          {/* LEFT: Product search + Sucursal + Payment */}
           <div className="flex flex-col gap-3">
 
-            {/* Sucursal */}
             <div>
               <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1 block">
                 Sucursal

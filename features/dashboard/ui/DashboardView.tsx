@@ -5,10 +5,6 @@ import ShopAdminDashboard from "./ShopAdminDashboard"
 import BranchAdminDashboard from "./BranchAdminDashboard"
 import ClientDashboard from "./ClientDashboard"
 
-/**
- * Router de dashboards según el rol del usuario
- * Cada rol tiene una vista personalizada
- */
 export default function DashboardView() {
   const { user } = useAuth()
 

@@ -112,7 +112,7 @@ export default function ItemsView() {
 
         {(isCreating || editingItem) && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-md flex items-center justify-center z-50 p-4">
-            <div className="glass glass-strong rounded-2xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+            <div className="glass glass-strong rounded-2xl p-8 max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
               <h2 className="text-2xl font-bold mb-6 text-foreground">
                 {editingItem ? "Editar Item" : "Crear Nuevo Item"}
               </h2>
@@ -122,14 +122,20 @@ export default function ItemsView() {
                   name: editingItem.name,
                   code: editingItem.code || editingItem.sku || editingItem.barcode || '',
                   price: editingItem.price,
-                  categoryId: typeof editingItem.category === 'object' ? editingItem.category._id || '' : editingItem.categoryId || '',
+                  cost: editingItem.cost,
+                  categoryId: typeof editingItem.category === 'object' ? editingItem.category?._id || '' : editingItem.categoryId || '',
                   description: editingItem.description,
+                  taxIncluded: editingItem.taxIncluded ?? false,
+                  active: editingItem.active ?? true,
+                  images: editingItem.images ?? [],
+                  modifiers: editingItem.modifiers ?? [],
                 } : undefined}
                 onSubmit={editingItem ? handleUpdate : handleCreate}
                 onCancel={() => {
                   setIsCreating(false)
                   setEditingItem(null)
                 }}
+                isSubmitting={createMutation.isPending || updateMutation.isPending}
               />
             </div>
           </div>

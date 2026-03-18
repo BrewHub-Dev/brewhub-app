@@ -8,22 +8,9 @@ import {
   type Permission,
 } from "../rbac";
 
-/**
- * Hook para verificar permisos del usuario autenticado
- *
- * @example
- * const { can, canAny, canAll } = usePermissions();
- *
- * if (can("items:delete")) {
- *   // Mostrar botón de eliminar
- * }
- */
 export function usePermissions() {
   const { user } = useAuth();
 
-  /**
-   * Verifica si el usuario tiene un permiso específico
-   */
   const can = useCallback(
     (permission: Permission): boolean => {
       if (!user) return false;
@@ -32,9 +19,6 @@ export function usePermissions() {
     [user]
   );
 
-  /**
-   * Verifica si el usuario tiene al menos uno de los permisos
-   */
   const canAny = useCallback(
     (permissions: Permission[]): boolean => {
       if (!user) return false;

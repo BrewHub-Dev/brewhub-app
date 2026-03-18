@@ -84,6 +84,8 @@ export function usePOS(items: Item[]) {
         setCustomer("")
         setValidationError(null)
         queryClient.invalidateQueries({ queryKey: ["orders"] })
+        queryClient.invalidateQueries({ queryKey: ["dashboard"] })
+        queryClient.invalidateQueries({ queryKey: ["kitchen"] })
       }
     },
   })

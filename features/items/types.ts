@@ -39,8 +39,13 @@ export interface ItemFormData {
   name: string
   code: string
   price: number
+  cost?: number
   categoryId: string
   description?: string
+  taxIncluded: boolean
+  active: boolean
+  images: string[]
+  modifiers: ItemModifier[]
 }
 
 export interface ItemsStats {
