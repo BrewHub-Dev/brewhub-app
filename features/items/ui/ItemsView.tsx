@@ -6,18 +6,25 @@ import ItemsStats from "./ItemsStats"
 import ItemsTable from "./ItemsTable"
 import ItemForm from "./ItemForm"
 import { getItems, createItem, updateItem, deleteItem } from "../api"
+import { Pagination } from "@/components/ui/Pagination"
 import type { Item, ItemFormData } from "../types"
+
+const LIMIT = 20
 
 export default function ItemsView() {
   const [searchQuery, setSearchQuery] = useState("")
+  const [page, setPage] = useState(1)
   const [isCreating, setIsCreating] = useState(false)
   const [editingItem, setEditingItem] = useState<Item | null>(null)
   const queryClient = useQueryClient()
 
-  const { data: items = [], isLoading } = useQuery({
-    queryKey: ["items"],
-    queryFn: getItems,
+  const { data = { data: [], pagination: { total: 0, page: 1, limit: LIMIT, pages: 0, hasNext: false, hasPrev: false } }, isLoading } = useQuery({
+    queryKey: ["items", page],
+    queryFn: () => getItems({ page, limit: LIMIT }),
   })
+
+  const items = data.data
+  const pagination = data.pagination
 
   const createMutation = useMutation({
     mutationFn: createItem,
@@ -43,7 +50,7 @@ export default function ItemsView() {
     },
   })
 
-  const filteredItems = (items || []).filter(item =>
+  const filteredItems = items.filter(item =>
     item.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     item.code?.includes(searchQuery) ||
     item.sku?.includes(searchQuery) ||
@@ -51,9 +58,9 @@ export default function ItemsView() {
   )
 
   const stats = {
-    totalItems: items?.length || 0,
-    averagePrice: items?.length > 0 ? items.reduce((acc, item) => acc + item.price, 0) / items.length : 0,
-    totalCategories: new Set((items || []).map(item => item.category?._id || item.categoryId).filter(Boolean)).size,
+    totalItems: pagination.total,
+    averagePrice: items.length > 0 ? items.reduce((acc, item) => acc + item.price, 0) / items.length : 0,
+    totalCategories: new Set(items.map(item => item.category?._id || item.categoryId).filter(Boolean)).size,
   }
 
   const handleCreate = async (data: ItemFormData) => {
@@ -70,6 +77,11 @@ export default function ItemsView() {
     if (confirm("¿Estás seguro de eliminar este item?")) {
       deleteMutation.mutate(id)
     }
+  }
+
+  function handlePageChange(newPage: number) {
+    setPage(newPage)
+    setSearchQuery("")
   }
 
   return (
@@ -96,7 +108,7 @@ export default function ItemsView() {
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
             <input
               type="text"
-              placeholder="Buscar por nombre o código..."
+              placeholder="Buscar en esta página..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full glass rounded-xl pl-12 pr-4 py-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
@@ -109,6 +121,10 @@ export default function ItemsView() {
           onEdit={setEditingItem}
           onDelete={handleDelete}
         />
+
+        {!searchQuery && (
+          <Pagination pagination={pagination} onPageChange={handlePageChange} />
+        )}
 
         {(isCreating || editingItem) && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-md flex items-center justify-center z-50 p-4">

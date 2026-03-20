@@ -18,7 +18,7 @@ export default function ClientDashboard() {
   const completedOrders = counts?.completed ?? 0
 
   const recentOrders = Array.isArray(ordersRaw)
-    ? ordersRaw.slice(0, 10).map((o: any) => ({
+    ? ordersRaw.map((o: any) => ({
         id: o.orderNumber ?? o._id,
         date: new Date(o.createdAt).toLocaleDateString("es-MX"),
         items: o.items?.length ?? 0,

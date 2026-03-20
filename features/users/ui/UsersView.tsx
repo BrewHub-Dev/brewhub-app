@@ -5,18 +5,25 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getUsers, deleteUser, type User } from "../api";
 import { usePermissions } from "@/lib/hooks/usePermissions";
 import { PermissionGuard } from "@/components/PermissionGuard";
+import { Pagination } from "@/components/ui/Pagination";
 import UserForm from "./UserForm";
 
+const LIMIT = 20
+
 export default function UsersView() {
+  const [page, setPage] = useState(1);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const queryClient = useQueryClient();
   const { can } = usePermissions();
 
-  const { data: users = [], isLoading } = useQuery({
-    queryKey: ["users"],
-    queryFn: getUsers,
+  const { data = { data: [], pagination: { total: 0, page: 1, limit: LIMIT, pages: 0, hasNext: false, hasPrev: false } }, isLoading } = useQuery({
+    queryKey: ["users", page],
+    queryFn: () => getUsers({ page, limit: LIMIT }),
   });
+
+  const users = data.data;
+  const pagination = data.pagination;
 
   const deleteMutation = useMutation({
     mutationFn: deleteUser,
@@ -54,7 +61,12 @@ export default function UsersView() {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-3xl font-bold mb-2 text-foreground">Gestión de Usuarios</h1>
-          <p className="text-muted-foreground">Administra los usuarios de tu sistema</p>
+          <p className="text-muted-foreground">
+            Administra los usuarios de tu sistema
+            {pagination.total > 0 && (
+              <span className="ml-2 text-sm">· {pagination.total} en total</span>
+            )}
+          </p>
         </div>
         <PermissionGuard permission="users:create">
           <button
@@ -135,6 +147,8 @@ export default function UsersView() {
           </tbody>
         </table>
       </div>
+
+      <Pagination pagination={pagination} onPageChange={setPage} />
 
       {isFormOpen && (
         <UserForm

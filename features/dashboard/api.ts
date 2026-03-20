@@ -37,7 +37,10 @@ export function useClientDashboard(userId: string | undefined) {
 export function useClientOrders(userId: string | undefined) {
   return useQuery({
     queryKey: ["orders", "user", userId],
-    queryFn: () => api.get(`/orders/user/${userId}`),
+    queryFn: async () => {
+      const res = await api.get(`/orders/user/${userId}?limit=10`)
+      return res?.data ?? []
+    },
     enabled: !!userId,
     staleTime: 30_000,
     refetchInterval: 60_000,

@@ -3,7 +3,7 @@
 import { useMemo, useState, useCallback } from "react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import type { Item, Scanned, PaymentMethod, SelectedModifier } from "../types"
-import { processCheckout } from "../api"
+import { processCheckout, createCardOrder } from "../api"
 
 export function usePOS(items: Item[]) {
   const queryClient = useQueryClient()
@@ -90,6 +90,10 @@ export function usePOS(items: Item[]) {
     },
   })
 
+  const cardOrderMutation = useMutation({
+    mutationFn: createCardOrder,
+  })
+
   const error =
     validationError ??
     (checkoutMutation.error instanceof Error
@@ -106,17 +110,8 @@ export function usePOS(items: Item[]) {
     [checkoutMutation]
   )
 
-  const checkout = useCallback(() => {
-    if (scanned.length === 0) {
-      setValidationError("Agrega al menos un producto al carrito.")
-      return
-    }
-    if (!branchId) {
-      setValidationError("Selecciona una sucursal antes de cobrar.")
-      return
-    }
-    setValidationError(null)
-    checkoutMutation.mutate({
+  function buildPayload() {
+    return {
       BranchId: branchId,
       guestName: customer || undefined,
       items: scanned.map((s) => ({
@@ -128,9 +123,52 @@ export function usePOS(items: Item[]) {
         })),
       })),
       paymentMethod,
-      paymentStatus: "paid",
-    })
+      paymentStatus: "paid" as const,
+    }
+  }
+
+  const checkout = useCallback(() => {
+    if (scanned.length === 0) {
+      setValidationError("Agrega al menos un producto al carrito.")
+      return
+    }
+    if (!branchId) {
+      setValidationError("Selecciona una sucursal antes de cobrar.")
+      return
+    }
+    setValidationError(null)
+    checkoutMutation.mutate(buildPayload())
   }, [scanned, branchId, customer, paymentMethod, checkoutMutation])
+
+  const checkoutCard = useCallback((): Promise<{ order: any; clientSecret: string }> => {
+    return new Promise((resolve, reject) => {
+      if (scanned.length === 0) {
+        setValidationError("Agrega al menos un producto al carrito.")
+        reject(new Error("empty"))
+        return
+      }
+      if (!branchId) {
+        setValidationError("Selecciona una sucursal antes de cobrar.")
+        reject(new Error("no branch"))
+        return
+      }
+      setValidationError(null)
+      cardOrderMutation.mutate(buildPayload(), {
+        onSuccess: resolve,
+        onError: reject,
+      })
+    })
+  }, [scanned, branchId, customer, paymentMethod, cardOrderMutation])
+
+  function finishCardPayment(orderNumber: string) {
+    setLastOrder({ orderNumber, total })
+    setScanned([])
+    setCustomer("")
+    setValidationError(null)
+    queryClient.invalidateQueries({ queryKey: ["orders"] })
+    queryClient.invalidateQueries({ queryKey: ["dashboard"] })
+    queryClient.invalidateQueries({ queryKey: ["kitchen"] })
+  }
 
   return {
     query,
@@ -151,7 +189,9 @@ export function usePOS(items: Item[]) {
     tax,
     total,
     checkout,
-    isCheckingOut: checkoutMutation.isPending,
+    checkoutCard,
+    finishCardPayment,
+    isCheckingOut: checkoutMutation.isPending || cardOrderMutation.isPending,
     lastOrder,
     setLastOrder,
     error,

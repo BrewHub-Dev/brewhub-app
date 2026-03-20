@@ -6,10 +6,16 @@ export function useKitchenOrders() {
   return useQuery<KitchenOrder[]>({
     queryKey: ["kitchen", "orders"],
     queryFn: async () => {
-      const confirmed = await api.get("/orders?status=confirmed")
-      const preparing = await api.get("/orders?status=preparing")
-      const ready = await api.get("/orders?status=ready")
-      const all = [...(confirmed ?? []), ...(preparing ?? []), ...(ready ?? [])]
+      const [confirmedRes, preparingRes, readyRes] = await Promise.all([
+        api.get("/orders?status=confirmed&limit=100"),
+        api.get("/orders?status=preparing&limit=100"),
+        api.get("/orders?status=ready&limit=100"),
+      ])
+      const all = [
+        ...(confirmedRes?.data ?? []),
+        ...(preparingRes?.data ?? []),
+        ...(readyRes?.data ?? []),
+      ]
       return all.sort(
         (a: any, b: any) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
       )

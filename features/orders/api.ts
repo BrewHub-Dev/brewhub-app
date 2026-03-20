@@ -1,4 +1,5 @@
 import api from "@/lib/api"
+import type { PaginationMeta } from "@/components/ui/Pagination"
 
 export type OrderStatus = "pending" | "confirmed" | "preparing" | "ready" | "completed" | "cancelled"
 
@@ -34,23 +35,37 @@ export interface Order {
     customer?: { _id: string; name: string; lastName: string }
 }
 
+export interface PaginatedOrders {
+    data: Order[]
+    pagination: PaginationMeta
+}
+
+const EMPTY_PAGINATION: PaginatedOrders = {
+    data: [],
+    pagination: { total: 0, page: 1, limit: 20, pages: 0, hasNext: false, hasPrev: false },
+}
+
 export async function getOrders(params?: {
     status?: OrderStatus
     BranchId?: string
-}): Promise<Order[]> {
+    page?: number
+    limit?: number
+}): Promise<PaginatedOrders> {
     try {
         let path = "/orders"
         const query: string[] = []
         if (params?.status) query.push(`status=${params.status}`)
         if (params?.BranchId) query.push(`BranchId=${params.BranchId}`)
+        if (params?.page) query.push(`page=${params.page}`)
+        if (params?.limit) query.push(`limit=${params.limit}`)
         if (query.length > 0) path += `?${query.join("&")}`
 
         const response = await api.get(path)
-        if (!response) return []
-        return Array.isArray(response) ? response : []
+        if (!response || !response.data) return EMPTY_PAGINATION
+        return response as PaginatedOrders
     } catch (err) {
         console.error("Error al obtener órdenes:", err)
-        return []
+        return EMPTY_PAGINATION
     }
 }
 

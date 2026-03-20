@@ -21,6 +21,7 @@ import { getBranches, getPOSItems } from "../api"
 import ItemSuggestion from "./ItemSuggestion"
 import ScannedList from "./ScannedList"
 import ModifierModal from "./ModifierModal"
+import { StripePaymentModal } from "./StripePaymentModal"
 import type { PaymentMethod, SelectedModifier } from "../types"
 import { useState } from "react"
 
@@ -64,6 +65,8 @@ export default function POSCard() {
     tax,
     total,
     checkout,
+    checkoutCard,
+    finishCardPayment,
     isCheckingOut,
     lastOrder,
     setLastOrder,
@@ -72,6 +75,24 @@ export default function POSCard() {
   } = usePOS(items)
 
   const [selectedItemForMod, setSelectedItemForMod] = useState<any>(null)
+  const [stripeData, setStripeData] = useState<{
+    clientSecret: string
+    orderId: string
+    orderNumber: string
+  } | null>(null)
+
+  async function handleCobrar() {
+    if (paymentMethod === "card") {
+      try {
+        const { order, clientSecret } = await checkoutCard()
+        setStripeData({ clientSecret, orderId: order._id, orderNumber: order.orderNumber })
+      } catch {
+        // error already set in usePOS
+      }
+    } else {
+      checkout()
+    }
+  }
 
   function handleAddItemClick(item: any) {
     if (item.modifiers && item.modifiers.length > 0) {
@@ -268,12 +289,14 @@ export default function POSCard() {
 
               <div className="flex gap-2 pt-1">
                 <Button
-                  onClick={checkout}
+                  onClick={handleCobrar}
                   disabled={isCheckingOut || scanned.length === 0}
                   className="flex-1 h-11 text-sm font-semibold bg-primary text-primary-foreground"
                 >
                   {isCheckingOut ? (
                     <><Loader2 className="w-4 h-4 animate-spin mr-2" />Procesando...</>
+                  ) : paymentMethod === "card" ? (
+                    `Cobrar con tarjeta $${total.toFixed(2)}`
                   ) : (
                     `Cobrar $${total.toFixed(2)}`
                   )}
@@ -301,6 +324,20 @@ export default function POSCard() {
             addItem(item, modifiers)
             setSelectedItemForMod(null)
           }}
+        />
+      )}
+
+      {stripeData && (
+        <StripePaymentModal
+          clientSecret={stripeData.clientSecret}
+          orderId={stripeData.orderId}
+          orderNumber={stripeData.orderNumber}
+          total={total}
+          onSuccess={(orderNumber) => {
+            setStripeData(null)
+            finishCardPayment(orderNumber)
+          }}
+          onCancel={() => setStripeData(null)}
         />
       )}
     </div>

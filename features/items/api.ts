@@ -1,32 +1,40 @@
 import { Item, ItemFormData } from "./types"
 import api, { BASE } from "@/lib/api";
+import type { PaginationMeta } from "@/components/ui/Pagination"
 
-export async function getItems(): Promise<Item[]> {
+export interface PaginatedItems {
+  data: Item[]
+  pagination: PaginationMeta
+}
+
+const EMPTY_PAGINATION: PaginatedItems = {
+  data: [],
+  pagination: { total: 0, page: 1, limit: 20, pages: 0, hasNext: false, hasPrev: false },
+}
+
+export async function getItems(params?: { page?: number; limit?: number }): Promise<PaginatedItems> {
   try {
-    const response = await api.get("/items");
+    let path = "/items"
+    const query: string[] = []
+    if (params?.page) query.push(`page=${params.page}`)
+    if (params?.limit) query.push(`limit=${params.limit}`)
+    if (query.length > 0) path += `?${query.join("&")}`
 
-    if (!response) {
-      console.warn("No hay datos en la respuesta");
-      return [];
-    }
+    const response = await api.get(path);
 
-    const data = Array.isArray(response) ? response : [];
+    if (!response || !response.data) return EMPTY_PAGINATION
 
-    if (data.length === 0) {
-      return [];
-    }
-
-    const items = data.map((item: any) => ({
+    const mapped = response.data.map((item: any) => ({
       ...item,
       id: item._id,
       code: item.sku || item.barcode,
       image: item.images?.[0],
     }));
 
-    return items;
+    return { data: mapped, pagination: response.pagination };
   } catch (err) {
     console.error("Error al obtener items:", err);
-    return [];
+    return EMPTY_PAGINATION;
   }
 }
 

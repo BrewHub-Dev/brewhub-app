@@ -166,12 +166,6 @@ export default function KitchenView() {
         </div>
       </div>
 
-      {isError && (
-        <div className="p-4 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-sm mb-6">
-          Error al cargar las órdenes. El sistema reintentará automáticamente.
-        </div>
-      )}
-
       {isLoading && orders.length === 0 ? (
         <div className="flex items-center justify-center py-24">
           <div className="flex flex-col items-center gap-3 text-muted-foreground">

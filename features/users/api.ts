@@ -1,4 +1,5 @@
 import api from "@/lib/api";
+import type { PaginationMeta } from "@/components/ui/Pagination"
 
 export interface User {
   _id: string;
@@ -23,9 +24,31 @@ export interface User {
   updatedAt?: string;
 }
 
-export async function getUsers(): Promise<User[]> {
-  const response = await api.get("/users");
-  return Array.isArray(response) ? response : [];
+export interface PaginatedUsers {
+  data: User[];
+  pagination: PaginationMeta;
+}
+
+const EMPTY_PAGINATION: PaginatedUsers = {
+  data: [],
+  pagination: { total: 0, page: 1, limit: 20, pages: 0, hasNext: false, hasPrev: false },
+}
+
+export async function getUsers(params?: { page?: number; limit?: number }): Promise<PaginatedUsers> {
+  try {
+    let path = "/users"
+    const query: string[] = []
+    if (params?.page) query.push(`page=${params.page}`)
+    if (params?.limit) query.push(`limit=${params.limit}`)
+    if (query.length > 0) path += `?${query.join("&")}`
+
+    const response = await api.get(path);
+    if (!response || !response.data) return EMPTY_PAGINATION
+    return response as PaginatedUsers
+  } catch (err) {
+    console.error("Error al obtener usuarios:", err)
+    return EMPTY_PAGINATION
+  }
 }
 
 export async function getUserById(id: string): Promise<User> {

@@ -3,11 +3,11 @@ import { Item, PaymentMethod, SelectedModifier } from "./types"
 
 export async function getPOSItems(): Promise<Item[]> {
   try {
-    const response = await api.get("/items")
+    const response = await api.get("/items?limit=100")
 
     if (!response) return []
 
-    const data = Array.isArray(response) ? response : []
+    const data: any[] = response.data ?? (Array.isArray(response) ? response : [])
 
     return data.map((item: any) => ({
       id: item._id,
@@ -74,4 +74,22 @@ export interface CheckoutResult {
 export async function processCheckout(payload: CheckoutPayload): Promise<CheckoutResult> {
   const response = await api.post("/orders/pos", payload)
   return response
+}
+
+export async function createCardOrder(payload: CheckoutPayload): Promise<{ order: CheckoutResult["order"]; clientSecret: string }> {
+  // 1. Create the order as payment-pending
+  const order = await api.post("/orders/pos", { ...payload, paymentStatus: "pending" })
+
+  // 2. Create a Stripe Payment Intent for this order
+  const { clientSecret } = await api.post("/stripe/create-payment-intent", {
+    amount: order.total,
+    currency: "mxn",
+    orderId: order._id,
+  })
+
+  return { order, clientSecret }
+}
+
+export async function markOrderPaid(orderId: string): Promise<void> {
+  await api.post(`/orders/${orderId}/pay`, { paymentMethod: "card" })
 }
