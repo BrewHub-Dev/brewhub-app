@@ -77,14 +77,11 @@ export async function processCheckout(payload: CheckoutPayload): Promise<Checkou
 }
 
 export async function createCardOrder(payload: CheckoutPayload): Promise<{ order: CheckoutResult["order"]; clientSecret: string }> {
-  // 1. Create the order as payment-pending
   const order = await api.post("/orders/pos", { ...payload, paymentStatus: "pending" })
 
-  // 2. Create a Stripe Payment Intent for this order
   const { clientSecret } = await api.post("/stripe/create-payment-intent", {
-    amount: order.total,
-    currency: "mxn",
     orderId: order._id,
+    currency: "mxn",
   })
 
   return { order, clientSecret }

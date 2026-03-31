@@ -81,6 +81,7 @@ export default function ModifierModal({ item, onClose, onAdd }: ModifierModalPro
                                 {mod.options?.map((opt: any) => (
                                     <label
                                         key={opt.name}
+                                        onClick={() => handleSelect(mod.name, opt.name)}
                                         className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-colors ${selected[mod.name] === opt.name
                                                 ? "border-primary bg-primary/10"
                                                 : "border-border hover:bg-muted/50"

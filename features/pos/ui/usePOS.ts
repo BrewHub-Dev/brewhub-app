@@ -10,6 +10,7 @@ export function usePOS(items: Item[]) {
   const [query, setQuery] = useState("")
   const [scanned, setScanned] = useState<Scanned[]>([])
   const [customer, setCustomer] = useState("")
+  const [email, setEmail] = useState("")
   const [branchId, setBranchId] = useState("")
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash")
   const [lastOrder, setLastOrder] = useState<{ orderNumber: string; total: number } | null>(null)
@@ -52,6 +53,7 @@ export function usePOS(items: Item[]) {
   const clear = useCallback(() => {
     setScanned([])
     setCustomer("")
+    setEmail("")
     setLastOrder(null)
     setValidationError(null)
     checkoutMutation.reset()
@@ -160,8 +162,8 @@ export function usePOS(items: Item[]) {
     })
   }, [scanned, branchId, customer, paymentMethod, cardOrderMutation])
 
-  function finishCardPayment(orderNumber: string) {
-    setLastOrder({ orderNumber, total })
+  function finishCardPayment(orderNumber: string, orderTotal: number) {
+    setLastOrder({ orderNumber, total: orderTotal })
     setScanned([])
     setCustomer("")
     setValidationError(null)
@@ -181,6 +183,8 @@ export function usePOS(items: Item[]) {
     clear,
     customer,
     setCustomer,
+    email,
+    setEmail,
     branchId,
     setBranchId,
     paymentMethod,

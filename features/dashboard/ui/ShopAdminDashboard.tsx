@@ -58,27 +58,21 @@ export default function ShopAdminDashboard() {
       title: "Sucursales",
       value: branches.length,
       icon: Building2,
-      color: "blue",
     },
     {
       title: "Ventas de Hoy",
       value: `$${data.today.revenue.toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
       icon: DollarSign,
-      trend: { value: Math.abs(revTrend), isPositive: revTrend >= 0 },
-      color: "green",
     },
     {
       title: "Clientes Únicos",
       value: data.today.uniqueCustomers,
       icon: Users,
-      color: "purple",
     },
     {
       title: "Pendientes",
       value: data.pendingCount,
       icon: Clock,
-      trend: { value: 0, isPositive: data.pendingCount === 0 },
-      color: "amber",
     },
   ]
 

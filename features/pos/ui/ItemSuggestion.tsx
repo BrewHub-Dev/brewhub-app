@@ -1,12 +1,26 @@
 "use client"
 
-import React from "react"
+import React, { useRef, useEffect } from "react"
 import { useDraggable } from '@dnd-kit/core'
 import type { Item } from "../types"
 
 export default function ItemSuggestion({ item, onAdd }: Readonly<{ item: Item; onAdd: (i: Item) => void }>) {
-  const {attributes, listeners, setNodeRef, transform} = useDraggable({ id: `item:${item.id}` })
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id: `item:${item.id}` })
   const style = transform ? { transform: `translate3d(${transform.x}px, ${transform.y}px, 0)` } : undefined
+
+  // Track if a real drag occurred so we can swallow the following click event
+  const wasDragging = useRef(false)
+  useEffect(() => {
+    if (isDragging) wasDragging.current = true
+  }, [isDragging])
+
+  function handleClick() {
+    if (wasDragging.current) {
+      wasDragging.current = false
+      return
+    }
+    onAdd(item)
+  }
 
   function handleTouchEnd(e: React.TouchEvent) {
     const touch = e.changedTouches[0]
@@ -22,7 +36,7 @@ export default function ItemSuggestion({ item, onAdd }: Readonly<{ item: Item; o
       {...listeners}
       {...attributes}
       onTouchEnd={handleTouchEnd}
-      onClick={() => onAdd(item)}
+      onClick={handleClick}
       style={style}
       className="text-left p-2 rounded-lg bg-muted/20 hover:bg-muted/40 border border-border/20 flex items-center justify-between"
     >

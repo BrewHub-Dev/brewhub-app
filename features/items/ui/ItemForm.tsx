@@ -2,10 +2,9 @@
 import { useState, useRef } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { Plus, Trash2, Upload, X, ImageIcon, Loader2, ChevronDown, ChevronUp } from "lucide-react"
+import { Select } from "@/components/ui/Select"
 import type { ItemFormData, ItemModifier, ItemModifierOption } from "../types"
 import { getCategories, uploadItemImage } from "../api"
-
-// ── Image Upload ─────────────────────────────────────────────────────────────
 
 interface ImageUploadProps {
   images: string[]
@@ -98,8 +97,6 @@ function ImageUpload({ images, onChange }: ImageUploadProps) {
     </div>
   )
 }
-
-// ── Modifiers Editor ──────────────────────────────────────────────────────────
 
 interface ModifiersEditorProps {
   modifiers: ItemModifier[]
@@ -263,7 +260,6 @@ function ModifiersEditor({ modifiers, onChange }: ModifiersEditorProps) {
   )
 }
 
-// ── Main Form ─────────────────────────────────────────────────────────────────
 
 interface ItemFormProps {
   initialData?: ItemFormData
@@ -308,7 +304,6 @@ export default function ItemForm({ initialData, onSubmit, onCancel, isSubmitting
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Basic info */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="text-sm text-muted-foreground block mb-2 font-medium">Nombre *</label>
@@ -368,21 +363,14 @@ export default function ItemForm({ initialData, onSubmit, onCancel, isSubmitting
         </div>
         <div>
           <label className="text-sm text-muted-foreground block mb-2 font-medium">Categoría *</label>
-          {isLoadingCategories ? (
-            <div className="w-full glass rounded-xl px-4 py-3 text-muted-foreground text-sm">Cargando…</div>
-          ) : (
-            <select
-              value={categoryId}
-              onChange={(e) => setCategoryId(e.target.value)}
-              required
-              className="w-full glass rounded-xl px-4 py-3 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-            >
-              <option value="">Seleccionar</option>
-              {categories.map((cat) => (
-                <option key={cat._id} value={cat._id}>{cat.name}</option>
-              ))}
-            </select>
-          )}
+          <Select
+            value={categoryId}
+            onChange={setCategoryId}
+            required
+            disabled={isLoadingCategories}
+            placeholder={isLoadingCategories ? "Cargando…" : "Seleccionar"}
+            options={categories.map((cat) => ({ value: cat._id, label: cat.name }))}
+          />
         </div>
       </div>
 

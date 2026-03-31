@@ -1,9 +1,10 @@
 "use client"
 
-import { DndContext } from '@dnd-kit/core'
+import { DndContext, MouseSensor, TouchSensor, useSensor, useSensors } from '@dnd-kit/core'
 import { useQuery } from "@tanstack/react-query"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { Select } from "@/components/ui/Select"
 import {
   Camera,
   X,
@@ -14,7 +15,6 @@ import {
   CreditCard,
   ArrowLeftRight,
   ShoppingBag,
-  ChevronDown,
 } from "lucide-react"
 import { usePOS } from "./usePOS"
 import { getBranches, getPOSItems } from "../api"
@@ -57,6 +57,8 @@ export default function POSCard() {
     clear,
     customer,
     setCustomer,
+    email,
+    setEmail,
     branchId,
     setBranchId,
     paymentMethod,
@@ -74,18 +76,25 @@ export default function POSCard() {
     setError,
   } = usePOS(items)
 
+  const sensors = useSensors(
+    useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } }),
+  )
+
   const [selectedItemForMod, setSelectedItemForMod] = useState<any>(null)
   const [stripeData, setStripeData] = useState<{
     clientSecret: string
     orderId: string
     orderNumber: string
+    orderTotal: number
+    customerEmail: string
   } | null>(null)
 
   async function handleCobrar() {
     if (paymentMethod === "card") {
       try {
         const { order, clientSecret } = await checkoutCard()
-        setStripeData({ clientSecret, orderId: order._id, orderNumber: order.orderNumber })
+        setStripeData({ clientSecret, orderId: order._id, orderNumber: order.orderNumber, orderTotal: order.total, customerEmail: email })
       } catch {
         // error already set in usePOS
       }
@@ -159,7 +168,7 @@ export default function POSCard() {
         </div>
       )}
 
-      <DndContext onDragEnd={handleDragEnd}>
+      <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
           <div className="flex flex-col gap-3">
@@ -168,23 +177,13 @@ export default function POSCard() {
               <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1 block">
                 Sucursal
               </label>
-              <div className="relative">
-                <select
-                  value={branchId}
-                  onChange={(e) => setBranchId(e.target.value)}
-                  className="w-full h-10 px-3 pr-8 rounded-lg bg-muted/20 border border-border text-sm text-foreground appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/50"
-                >
-                  <option value="">Selecciona una sucursal</option>
-                  {loadingBranches ? (
-                    <option disabled>Cargando...</option>
-                  ) : (
-                    branches.map((b) => (
-                      <option key={b.id} value={b.id}>{b.name}</option>
-                    ))
-                  )}
-                </select>
-                <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-              </div>
+              <Select
+                value={branchId}
+                onChange={setBranchId}
+                disabled={loadingBranches}
+                placeholder={loadingBranches ? "Cargando..." : "Selecciona una sucursal"}
+                options={branches.map((b) => ({ value: b.id, label: b.name }))}
+              />
             </div>
 
             {/* Cliente */}
@@ -194,6 +193,18 @@ export default function POSCard() {
                 placeholder="Nombre del cliente"
                 value={customer}
                 onChange={(e) => setCustomer(e.target.value)}
+                className="bg-muted/20 border"
+              />
+            </div>
+
+            {/* Email */}
+            <div>
+              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1 block">Email del cliente (opcional)</label>
+              <Input
+                type="email"
+                placeholder="correo@ejemplo.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className="bg-muted/20 border"
               />
             </div>
@@ -332,10 +343,11 @@ export default function POSCard() {
           clientSecret={stripeData.clientSecret}
           orderId={stripeData.orderId}
           orderNumber={stripeData.orderNumber}
-          total={total}
+          total={stripeData.orderTotal}
+          customerEmail={stripeData.customerEmail}
           onSuccess={(orderNumber) => {
             setStripeData(null)
-            finishCardPayment(orderNumber)
+            finishCardPayment(orderNumber, stripeData.orderTotal)
           }}
           onCancel={() => setStripeData(null)}
         />

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
+import { Select } from "@/components/ui/Select";
 import { updateUser, type User } from "../api";
 import { getBranches } from "@/features/branches/api";
 import { useAuth } from "@/lib/auth-store";
@@ -186,25 +187,24 @@ export default function UserForm({ user, onClose }: Readonly<UserFormProps>) {
             <label htmlFor="user-role" className="text-sm text-muted-foreground block mb-2 font-medium">
               Rol *
             </label>
-            <select
+            <Select
               id="user-role"
               value={formData.role}
-              onChange={(e) => {
-                const newRole = e.target.value as UserFormData["role"];
+              onChange={(newRole) => {
                 setFormData({
                   ...formData,
-                  role: newRole,
+                  role: newRole as UserFormData["role"],
                   ShopId: newRole === "ADMIN" || newRole === "CLIENT" ? undefined : formData.ShopId,
                   BranchId: newRole === "BRANCH_ADMIN" ? formData.BranchId : undefined,
                 });
               }}
-              className="w-full glass rounded-xl px-4 py-3 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-            >
-              <option value="CLIENT">Cliente</option>
-              <option value="BRANCH_ADMIN">Admin de Sucursal</option>
-              <option value="SHOP_ADMIN">Admin de Tienda</option>
-              <option value="ADMIN">Administrador</option>
-            </select>
+              options={[
+                { value: "CLIENT", label: "Cliente" },
+                { value: "BRANCH_ADMIN", label: "Admin de Sucursal" },
+                { value: "SHOP_ADMIN", label: "Admin de Tienda" },
+                { value: "ADMIN", label: "Administrador" },
+              ]}
+            />
           </div>
 
           {roleRequiresBranch && (
@@ -212,22 +212,14 @@ export default function UserForm({ user, onClose }: Readonly<UserFormProps>) {
               <label htmlFor="user-branch" className="text-sm text-muted-foreground block mb-2 font-medium">
                 Sucursal *
               </label>
-              <select
+              <Select
                 id="user-branch"
                 value={formData.BranchId || ""}
-                onChange={(e) =>
-                  setFormData({ ...formData, BranchId: e.target.value })
-                }
-                className="w-full glass rounded-xl px-4 py-3 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                onChange={(value) => setFormData({ ...formData, BranchId: value })}
                 required
-              >
-                <option value="">Seleccionar sucursal...</option>
-                {branches.map((branch) => (
-                  <option key={branch._id} value={branch._id}>
-                    {branch.name}
-                  </option>
-                ))}
-              </select>
+                placeholder="Seleccionar sucursal..."
+                options={branches.map((branch) => ({ value: branch._id, label: branch.name }))}
+              />
             </div>
           )}
 

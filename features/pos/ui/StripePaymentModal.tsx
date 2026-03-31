@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { loadStripe } from "@stripe/stripe-js"
 import {
   Elements,
@@ -17,11 +17,13 @@ const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
 function CheckoutForm({
   orderId,
   total,
+  customerEmail,
   onSuccess,
   onCancel,
 }: {
   orderId: string
   total: number
+  customerEmail?: string
   onSuccess: (orderNumber: string) => void
   onCancel: () => void
 }) {
@@ -46,7 +48,15 @@ function CheckoutForm({
 
     const { error: confirmError, paymentIntent } = await stripe.confirmPayment({
       elements,
-      confirmParams: { return_url: window.location.href },
+      confirmParams: {
+        return_url: window.location.href,
+        payment_method_data: {
+          billing_details: {
+            name: "Cliente POS",
+            ...(customerEmail && { email: customerEmail }),
+          },
+        },
+      },
       redirect: "if_required",
     })
 
@@ -90,7 +100,12 @@ function CheckoutForm({
       <PaymentElement
         options={{
           layout: "tabs",
-          fields: { billingDetails: { name: "never", email: "never" } },
+          fields: {
+            billingDetails: {
+              name: "never",
+              email: customerEmail ? "never" : "auto",
+            },
+          },
         }}
       />
 
@@ -116,12 +131,12 @@ function CheckoutForm({
   )
 }
 
-// ── Public modal wrapper ──────────────────────────────────────────────────────
 interface StripePaymentModalProps {
   clientSecret: string
   orderId: string
   orderNumber: string
   total: number
+  customerEmail?: string
   onSuccess: (orderNumber: string) => void
   onCancel: () => void
 }
@@ -131,6 +146,7 @@ export function StripePaymentModal({
   orderId,
   orderNumber,
   total,
+  customerEmail,
   onSuccess,
   onCancel,
 }: StripePaymentModalProps) {
@@ -143,15 +159,15 @@ export function StripePaymentModal({
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="glass glass-strong rounded-2xl shadow-2xl w-full max-w-md p-6 border border-border/50">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 border border-gray-200">
         {paid ? (
           <div className="flex flex-col items-center gap-4 py-4">
             <div className="w-16 h-16 rounded-full bg-green-500/20 flex items-center justify-center">
               <CheckCircle2 className="w-8 h-8 text-green-500" />
             </div>
             <div className="text-center">
-              <p className="text-xl font-bold text-foreground">¡Pago exitoso!</p>
-              <p className="text-muted-foreground text-sm mt-1">Orden #{orderNumber}</p>
+              <p className="text-xl font-bold text-gray-900">¡Pago exitoso!</p>
+              <p className="text-gray-500 text-sm mt-1">Orden #{orderNumber}</p>
             </div>
           </div>
         ) : (
@@ -160,11 +176,9 @@ export function StripePaymentModal({
             options={{
               clientSecret,
               appearance: {
-                theme: "night",
+                theme: "stripe",
                 variables: {
-                  colorPrimary: "hsl(var(--primary))",
-                  colorBackground: "hsl(var(--card))",
-                  colorText: "hsl(var(--foreground))",
+                  colorPrimary: "#6366f1",
                   borderRadius: "8px",
                 },
               },
@@ -173,6 +187,7 @@ export function StripePaymentModal({
             <CheckoutForm
               orderId={orderId}
               total={total}
+              customerEmail={customerEmail}
               onSuccess={handleSuccess}
               onCancel={onCancel}
             />

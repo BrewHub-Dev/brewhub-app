@@ -3,6 +3,7 @@
 import { useAuth } from "@/lib/auth-store";
 import { useEffect, useState } from "react";
 import { get } from "@/lib/api";
+import { Select } from "@/components/ui/Select";
 
 interface Branch {
   _id: string;
@@ -56,20 +57,15 @@ export function BranchSelector() {
       <label htmlFor="branch-select" className="text-sm font-medium">
         Branch:
       </label>
-      <select
+      <Select
         id="branch-select"
         value={selectedBranchId}
-        onChange={(e) => handleSelectBranch(e.target.value)}
+        onChange={handleSelectBranch}
         disabled={loading}
-        className="px-2 py-1 border rounded text-sm"
-      >
-        <option value="">-- All Branches --</option>
-        {branches.map((branch) => (
-          <option key={branch._id} value={branch._id}>
-            {branch.name}
-          </option>
-        ))}
-      </select>
+        placeholder="-- All Branches --"
+        options={branches.map((branch) => ({ value: branch._id, label: branch.name }))}
+        className="min-w-[160px]"
+      />
     </div>
   );
 }
