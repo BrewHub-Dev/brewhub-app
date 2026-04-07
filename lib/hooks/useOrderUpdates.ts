@@ -1,9 +1,20 @@
 "use client"
 
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useQueryClient } from "@tanstack/react-query"
 import { io, Socket } from "socket.io-client"
 import { BASE } from "@/lib/api"
+
+interface OrderUpdatedEvent {
+  orderId?: string
+  orderNumber?: string
+}
+
+interface OrderStatusChangedEvent {
+  orderId?: string
+  status?: string
+  branchId?: string
+}
 
 function getToken(): string | null {
   try {
@@ -24,13 +35,10 @@ function getUser(): { branchId?: string; ShopId?: string; _id?: string } | null 
   }
 }
 
-/**
- * Connects to the backend Socket.io server and invalidates React Query caches
- * when order status changes are received. Mount this once at the dashboard layout level.
- */
 export function useOrderUpdates() {
   const queryClient = useQueryClient()
   const socketRef = useRef<Socket | null>(null)
+  const [connected, setConnected] = useState(false)
 
   useEffect(() => {
     const token = getToken()
@@ -42,30 +50,35 @@ export function useOrderUpdates() {
     const socket = io(serverUrl, {
       auth: { token },
       transports: ["websocket", "polling"],
-      reconnectionAttempts: 5,
+      reconnectionAttempts: 10,
       reconnectionDelay: 2000,
+      reconnectionDelayMax: 10000,
     })
 
     socketRef.current = socket
 
     socket.on("connect", () => {
-      console.log("[WS] Connected:", socket.id)
-
+      setConnected(true)
       if (user?.ShopId) {
         socket.emit("join:room", `shop:${user.ShopId}`)
       }
     })
 
+    socket.on("disconnect", () => {
+      setConnected(false)
+    })
+
     socket.on("connect_error", (err) => {
+      setConnected(false)
       console.warn("[WS] Connection error:", err.message)
     })
 
-    socket.on("order:updated", () => {
+    socket.on("order:updated", (_data?: OrderUpdatedEvent) => {
       queryClient.invalidateQueries({ queryKey: ["orders"] })
       queryClient.invalidateQueries({ queryKey: ["dashboard"] })
     })
 
-    socket.on("order:statusChanged", () => {
+    socket.on("order:statusChanged", (_data?: OrderStatusChangedEvent) => {
       queryClient.invalidateQueries({ queryKey: ["orders"] })
       queryClient.invalidateQueries({ queryKey: ["dashboard"] })
       queryClient.invalidateQueries({ queryKey: ["kitchen"] })
@@ -74,6 +87,9 @@ export function useOrderUpdates() {
     return () => {
       socket.disconnect()
       socketRef.current = null
+      setConnected(false)
     }
   }, [queryClient])
+
+  return { connected }
 }

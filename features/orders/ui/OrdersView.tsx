@@ -2,8 +2,8 @@
 
 import { useState } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { getOrders, updateOrderStatus } from "../api"
-import type { OrderStatus } from "../api"
+import { getOrders, updateOrderStatus, refundOrder } from "../api"
+import type { OrderStatus, Order } from "../api"
 import { Pagination } from "@/components/ui/Pagination"
 import {
   Clock,
@@ -14,8 +14,12 @@ import {
   Loader2,
   RefreshCw,
   Eye,
+  RotateCcw,
+  Printer,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { usePermissions } from "@/lib/hooks/usePermissions"
+import { ReceiptModal } from "@/features/pos/ui/ReceiptModal"
 
 const STATUS_CONFIG: Record<OrderStatus, { label: string; color: string; icon: React.ElementType }> = {
   pending: { label: "Pendiente", color: "bg-yellow-500/20 text-yellow-500 border-yellow-500/30", icon: Clock },
@@ -52,7 +56,11 @@ export default function OrdersView() {
   const [statusFilter, setStatusFilter] = useState<OrderStatus | "all">("all")
   const [page, setPage] = useState(1)
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [receiptOrder, setReceiptOrder] = useState<Order | null>(null)
   const queryClient = useQueryClient()
+
+  const { can } = usePermissions()
+  const canRefund = can("pos:refund")
 
   const { data = { data: [], pagination: { total: 0, page: 1, limit: 20, pages: 0, hasNext: false, hasPrev: false } }, isLoading, refetch, isFetching } = useQuery({
     queryKey: ["orders", statusFilter, page],
@@ -69,6 +77,11 @@ export default function OrdersView() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["orders"] })
     },
+  })
+
+  const refundMutation = useMutation({
+    mutationFn: (orderId: string) => refundOrder(orderId),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["orders"] }),
   })
 
   function handleFilterChange(filter: OrderStatus | "all") {
@@ -212,6 +225,13 @@ export default function OrdersView() {
                           </Button>
                         )}
                         <button
+                          onClick={(e) => { e.stopPropagation(); setReceiptOrder(order) }}
+                          className="p-2 rounded-lg hover:bg-muted/20 text-muted-foreground"
+                          title="Imprimir ticket"
+                        >
+                          <Printer className="w-4 h-4" />
+                        </button>
+                        <button
                           onClick={() => setExpandedId(isExpanded ? null : order._id)}
                           className="text-muted-foreground hover:text-foreground transition-colors"
                         >
@@ -243,6 +263,24 @@ export default function OrdersView() {
                             {order.notes}
                           </p>
                         )}
+                        {canRefund && order.status === "completed" && order.paymentMethod === "card" && (
+                          <div className="mt-3 pt-3 border-t border-border/20">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="gap-1.5 text-red-600 border-red-200 hover:bg-red-50"
+                              disabled={refundMutation.isPending}
+                              onClick={() => {
+                                if (confirm(`¿Reembolsar la orden #${order.orderNumber} por $${order.total.toFixed(2)}?`)) {
+                                  refundMutation.mutate(order._id)
+                                }
+                              }}
+                            >
+                              <RotateCcw className="w-3.5 h-3.5" />
+                              Reembolsar
+                            </Button>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -254,6 +292,30 @@ export default function OrdersView() {
           </>
         )}
       </div>
+
+      {receiptOrder && (
+        <ReceiptModal
+          order={{
+            orderNumber: receiptOrder.orderNumber,
+            total: receiptOrder.total,
+            subtotal: receiptOrder.subtotal,
+            tax: receiptOrder.tax,
+            items: receiptOrder.items.map((i) => ({
+              name: i.name,
+              quantity: i.quantity,
+              price: i.price,
+              itemTotal: i.itemTotal,
+              modifiers: i.modifiers,
+            })),
+            paymentMethod: receiptOrder.paymentMethod,
+            guestName: receiptOrder.guestName,
+            branchName: receiptOrder.branchName,
+            createdAt: receiptOrder.createdAt,
+            notes: receiptOrder.notes,
+          }}
+          onClose={() => setReceiptOrder(null)}
+        />
+      )}
     </div>
   )
 }

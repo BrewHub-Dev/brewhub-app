@@ -15,6 +15,9 @@ export function usePOS(items: Item[]) {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash")
   const [lastOrder, setLastOrder] = useState<{ orderNumber: string; total: number } | null>(null)
   const [validationError, setValidationError] = useState<string | null>(null)
+  const [cashReceived, setCashReceived] = useState(0)
+  const [discount, setDiscount] = useState(0)
+  const [notes, setNotes] = useState("")
 
   const suggestions = useMemo(() => {
     if (!query) return items
@@ -56,6 +59,9 @@ export function usePOS(items: Item[]) {
     setEmail("")
     setLastOrder(null)
     setValidationError(null)
+    setDiscount(0)
+    setNotes("")
+    setCashReceived(0)
     checkoutMutation.reset()
   }, [])
 
@@ -72,7 +78,9 @@ export function usePOS(items: Item[]) {
     }, 0)
   ).toFixed(2)
 
-  const total = +(subtotal + tax).toFixed(2)
+  const total = +(Math.max(0, subtotal + tax - discount)).toFixed(2)
+
+  const change = cashReceived > 0 ? Math.max(0, cashReceived - total) : 0
 
   const checkoutMutation = useMutation({
     mutationFn: processCheckout,
@@ -113,6 +121,7 @@ export function usePOS(items: Item[]) {
   )
 
   function buildPayload() {
+    const backendPaymentMethod = paymentMethod === "terminal" ? "card" : paymentMethod
     return {
       BranchId: branchId,
       guestName: customer || undefined,
@@ -124,8 +133,10 @@ export function usePOS(items: Item[]) {
           optionName: m.optionName,
         })),
       })),
-      paymentMethod,
+      paymentMethod: backendPaymentMethod,
       paymentStatus: "paid" as const,
+      discount: discount > 0 ? discount : undefined,
+      notes: notes || undefined,
     }
   }
 
@@ -192,6 +203,13 @@ export function usePOS(items: Item[]) {
     subtotal,
     tax,
     total,
+    cashReceived,
+    setCashReceived,
+    discount,
+    setDiscount,
+    notes,
+    setNotes,
+    change,
     checkout,
     checkoutCard,
     finishCardPayment,

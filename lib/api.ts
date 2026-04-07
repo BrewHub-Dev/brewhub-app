@@ -210,14 +210,31 @@ export async function del<T = any>(path: string) {
   return data as T;
 }
 
+export async function download(path: string): Promise<Blob> {
+  const url = buildUrl(path);
+  let res: Response;
+  try {
+    res = await fetch(url, { credentials: "include", headers: buildHeaders() });
+  } catch {
+    throw new Error(`No se puede conectar al servidor (${BASE}).`);
+  }
+  if (res.status === 401) redirectToLogin();
+  if (!res.ok) {
+    const text = await res.text().catch(() => res.statusText);
+    throw new Error(text || "Download failed");
+  }
+  return res.blob();
+}
+
 function redirectToLogin() {
   try {
     if (typeof window !== "undefined") {
+      if (window.location.pathname === "/") return;
       localStorage.removeItem("bh_token");
       localStorage.removeItem("bh_user");
-      window.location.href = "/home";
+      window.location.href = "/";
     }
   } catch {}
 }
 
-export default { post, get, put, patch, del };
+export default { post, get, put, patch, del, download };

@@ -96,3 +96,7 @@ export async function updateOrderStatus(
     if (!endpoint) throw new Error(`No transition endpoint for status: ${status}`)
     return api.patch(`/orders/${orderId}/${endpoint}`, notes ? { notes } : {})
 }
+
+export async function refundOrder(orderId: string): Promise<{ ok: boolean; refund?: unknown }> {
+    return api.post(`/orders/${orderId}/refund`, {})
+}

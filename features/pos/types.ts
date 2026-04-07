@@ -1,4 +1,4 @@
-export type PaymentMethod = "cash" | "card" | "transfer"
+export type PaymentMethod = "cash" | "card" | "transfer" | "terminal"
 
 export interface Modifier {
   name: string

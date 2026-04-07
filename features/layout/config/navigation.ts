@@ -10,6 +10,8 @@ import {
   QrCode,
   ScanLine,
   ChefHat,
+  Calculator,
+  Boxes,
   type LucideIcon,
 } from "lucide-react";
 import type { Permission } from "@/lib/rbac";
@@ -48,6 +50,18 @@ export const navigationItems: NavItem[] = [
     href: "/dashboard/pos",
     icon: ShoppingCart,
     permission: "pos:use",
+  },
+  {
+    name: "Cierre de Caja",
+    href: "/dashboard/caja",
+    icon: Calculator,
+    permission: "pos:use",
+  },
+  {
+    name: "Stock",
+    href: "/dashboard/stock",
+    icon: Boxes,
+    permission: "items:manage_inventory",
   },
   {
     name: "Escanear QR",

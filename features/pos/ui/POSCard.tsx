@@ -15,6 +15,9 @@ import {
   CreditCard,
   ArrowLeftRight,
   ShoppingBag,
+  Smartphone,
+  Receipt,
+  Printer,
 } from "lucide-react"
 import { usePOS } from "./usePOS"
 import { getBranches, getPOSItems } from "../api"
@@ -22,13 +25,17 @@ import ItemSuggestion from "./ItemSuggestion"
 import ScannedList from "./ScannedList"
 import ModifierModal from "./ModifierModal"
 import { StripePaymentModal } from "./StripePaymentModal"
-import type { PaymentMethod, SelectedModifier } from "../types"
-import { useState } from "react"
+import { StripeTerminalModal } from "./StripeTerminalModal"
+import { ReceiptModal } from "./ReceiptModal"
+import type { PaymentMethod } from "../types"
+import { useState, useMemo } from "react"
+import { usePermissions } from "@/lib/hooks/usePermissions"
 
 const PAYMENT_METHODS: { value: PaymentMethod; label: string; icon: React.ElementType }[] = [
   { value: "cash", label: "Efectivo", icon: Banknote },
   { value: "card", label: "Tarjeta", icon: CreditCard },
   { value: "transfer", label: "Transferencia", icon: ArrowLeftRight },
+  { value: "terminal", label: "Terminal", icon: Smartphone },
 ]
 
 export default function POSCard() {
@@ -66,6 +73,13 @@ export default function POSCard() {
     subtotal,
     tax,
     total,
+    cashReceived,
+    setCashReceived,
+    discount,
+    setDiscount,
+    notes,
+    setNotes,
+    change,
     checkout,
     checkoutCard,
     finishCardPayment,
@@ -76,12 +90,32 @@ export default function POSCard() {
     setError,
   } = usePOS(items)
 
+  const { can } = usePermissions()
+  const canDiscount = can("pos:apply_discount")
+  const [selectedCategory, setSelectedCategory] = useState<string>("all")
+
+  const categories = useMemo(() => {
+    const map = new Map<string, string>()
+    items.forEach((item) => {
+      if (item.category?.id && item.category?.name) {
+        map.set(item.category.id, item.category.name)
+      }
+    })
+    return Array.from(map.entries()).map(([id, name]) => ({ id, name }))
+  }, [items])
+
+  const filteredSuggestions = useMemo(() => {
+    if (selectedCategory === "all") return suggestions
+    return suggestions.filter((i) => i.category?.id === selectedCategory)
+  }, [suggestions, selectedCategory])
+
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } }),
   )
 
   const [selectedItemForMod, setSelectedItemForMod] = useState<any>(null)
+  const [showReceipt, setShowReceipt] = useState(false)
   const [stripeData, setStripeData] = useState<{
     clientSecret: string
     orderId: string
@@ -90,13 +124,25 @@ export default function POSCard() {
     customerEmail: string
   } | null>(null)
 
+  const [terminalData, setTerminalData] = useState<{
+    clientSecret: string
+    orderId: string
+    orderNumber: string
+    orderTotal: number
+  } | null>(null)
+
   async function handleCobrar() {
     if (paymentMethod === "card") {
       try {
         const { order, clientSecret } = await checkoutCard()
         setStripeData({ clientSecret, orderId: order._id, orderNumber: order.orderNumber, orderTotal: order.total, customerEmail: email })
       } catch {
-        // error already set in usePOS
+      }
+    } else if (paymentMethod === "terminal") {
+      try {
+        const { order, clientSecret } = await checkoutCard()
+        setTerminalData({ clientSecret, orderId: order._id, orderNumber: order.orderNumber, orderTotal: order.total })
+      } catch {
       }
     } else {
       checkout()
@@ -149,6 +195,27 @@ export default function POSCard() {
         <Button onClick={() => setLastOrder(null)} className="mt-4 px-8">
           Nueva venta
         </Button>
+        <Button variant="outline" onClick={() => setShowReceipt(true)} className="mt-2 px-8 gap-2">
+          <Receipt className="w-4 h-4" />
+          Imprimir ticket
+        </Button>
+        {showReceipt && (
+          <ReceiptModal
+            order={{
+              orderNumber: lastOrder.orderNumber,
+              total: lastOrder.total,
+              subtotal: lastOrder.total,
+              tax: 0,
+              items: [],
+              paymentMethod: paymentMethod,
+              guestName: customer,
+              createdAt: new Date().toISOString(),
+            }}
+            cashReceived={cashReceived}
+            change={change}
+            onClose={() => setShowReceipt(false)}
+          />
+        )}
       </div>
     )
   }
@@ -220,7 +287,7 @@ export default function POSCard() {
                     placeholder="Nombre, SKU o código de barras"
                     className="bg-muted/20 border"
                     onKeyDown={(e) => {
-                      if (e.key === "Enter" && suggestions[0]) handleAddItemClick(suggestions[0])
+                      if (e.key === "Enter" && filteredSuggestions[0]) handleAddItemClick(filteredSuggestions[0])
                     }}
                   />
                   <button type="button" className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground" title="Escanear">
@@ -229,7 +296,7 @@ export default function POSCard() {
                 </div>
                 <Button
                   type="button"
-                  onClick={() => { if (suggestions[0]) handleAddItemClick(suggestions[0]) }}
+                  onClick={() => { if (filteredSuggestions[0]) handleAddItemClick(filteredSuggestions[0]) }}
                   className="h-10 px-4"
                   variant="secondary"
                 >
@@ -238,6 +305,27 @@ export default function POSCard() {
               </div>
             </div>
 
+            {/* Category filter */}
+            {categories.length > 0 && (
+              <div className="flex gap-1.5 flex-wrap">
+                <button
+                  onClick={() => setSelectedCategory("all")}
+                  className={`px-3 py-1 rounded-lg text-xs font-medium border transition-all ${selectedCategory === "all" ? "bg-primary/20 border-primary/50 text-primary" : "bg-muted/20 border-border text-muted-foreground hover:bg-muted/40"}`}
+                >
+                  Todos
+                </button>
+                {categories.map((cat) => (
+                  <button
+                    key={cat.id}
+                    onClick={() => setSelectedCategory(cat.id)}
+                    className={`px-3 py-1 rounded-lg text-xs font-medium border transition-all ${selectedCategory === cat.id ? "bg-primary/20 border-primary/50 text-primary" : "bg-muted/20 border-border text-muted-foreground hover:bg-muted/40"}`}
+                  >
+                    {cat.name}
+                  </button>
+                ))}
+              </div>
+            )}
+
             {/* Products grid */}
             {items.length === 0 ? (
               <div className="p-4 rounded-lg bg-muted/10 border border-border/20 text-center text-sm text-muted-foreground">
@@ -245,7 +333,7 @@ export default function POSCard() {
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-64 overflow-y-auto pr-1">
-                {suggestions.slice(0, 12).map((it) => (
+                {filteredSuggestions.slice(0, 24).map((it) => (
                   <ItemSuggestion key={it.id} item={it} onAdd={handleAddItemClick} />
                 ))}
               </div>
@@ -256,7 +344,7 @@ export default function POSCard() {
               <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2 block">
                 Método de pago
               </label>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-4 gap-2">
                 {PAYMENT_METHODS.map(({ value, label, icon: Icon }) => (
                   <button
                     key={value}
@@ -272,6 +360,37 @@ export default function POSCard() {
                   </button>
                 ))}
               </div>
+            </div>
+
+            {/* Descuento */}
+            {canDiscount && (
+              <div>
+                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1 block">
+                  Descuento ($)
+                </label>
+                <Input
+                  type="number"
+                  min="0"
+                  step="0.50"
+                  value={discount || ""}
+                  onChange={(e) => setDiscount(Math.max(0, Number(e.target.value)))}
+                  placeholder="0.00"
+                  className="bg-muted/20 border"
+                />
+              </div>
+            )}
+
+            {/* Notas */}
+            <div>
+              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1 block">
+                Notas del pedido (opcional)
+              </label>
+              <Input
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Sin azúcar, extra caliente..."
+                className="bg-muted/20 border"
+              />
             </div>
           </div>
 
@@ -293,10 +412,39 @@ export default function POSCard() {
                 <span>Subtotal</span>
                 <span>${subtotal.toFixed(2)}</span>
               </div>
+              {discount > 0 && (
+                <div className="flex justify-between text-sm text-green-600">
+                  <span>Descuento</span>
+                  <span>-${discount.toFixed(2)}</span>
+                </div>
+              )}
               <div className="flex justify-between text-lg font-bold border-t border-border/30 pt-2 mt-2">
                 <span>Total</span>
                 <span className="text-primary">${total.toFixed(2)}</span>
               </div>
+
+              {paymentMethod === "cash" && (
+                <div className="pt-2 border-t border-border/30 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <label className="text-sm text-muted-foreground whitespace-nowrap">Cliente paga:</label>
+                    <Input
+                      type="number"
+                      min={total}
+                      step="0.50"
+                      value={cashReceived || ""}
+                      onChange={(e) => setCashReceived(Number(e.target.value))}
+                      placeholder={`$${total.toFixed(2)}`}
+                      className="h-8 text-sm bg-muted/20 border"
+                    />
+                  </div>
+                  {cashReceived > 0 && (
+                    <div className="flex justify-between text-base font-bold text-green-600">
+                      <span>Cambio</span>
+                      <span>${change.toFixed(2)}</span>
+                    </div>
+                  )}
+                </div>
+              )}
 
               <div className="flex gap-2 pt-1">
                 <Button
@@ -308,6 +456,8 @@ export default function POSCard() {
                     <><Loader2 className="w-4 h-4 animate-spin mr-2" />Procesando...</>
                   ) : paymentMethod === "card" ? (
                     `Cobrar con tarjeta $${total.toFixed(2)}`
+                  ) : paymentMethod === "terminal" ? (
+                    `Cobrar con terminal $${total.toFixed(2)}`
                   ) : (
                     `Cobrar $${total.toFixed(2)}`
                   )}
@@ -350,6 +500,20 @@ export default function POSCard() {
             finishCardPayment(orderNumber, stripeData.orderTotal)
           }}
           onCancel={() => setStripeData(null)}
+        />
+      )}
+
+      {terminalData && (
+        <StripeTerminalModal
+          clientSecret={terminalData.clientSecret}
+          orderId={terminalData.orderId}
+          orderNumber={terminalData.orderNumber}
+          total={terminalData.orderTotal}
+          onSuccess={(orderNumber) => {
+            setTerminalData(null)
+            finishCardPayment(orderNumber, terminalData.orderTotal)
+          }}
+          onCancel={() => setTerminalData(null)}
         />
       )}
     </div>

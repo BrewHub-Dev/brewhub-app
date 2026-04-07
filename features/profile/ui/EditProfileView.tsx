@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth-store";
-import { updateUser, updateCurrentUserPassword } from "@/features/users/api";
+import { updateCurrentUserPassword } from "@/features/users/api";
+import api from "@/lib/api";
 
 export default function EditProfileView() {
   const { user } = useAuth();
@@ -13,7 +14,7 @@ export default function EditProfileView() {
   const [profileData, setProfileData] = useState({
     firstName: "",
     lastName: "",
-    emailAddress: "",
+    phone: "",
   });
 
   const [passwordData, setPasswordData] = useState({
@@ -27,12 +28,17 @@ export default function EditProfileView() {
     setProfileData({
       firstName: user.name ?? "",
       lastName: user.lastName ?? "",
-      emailAddress: user.emailAddress ?? "",
+      phone: user.phone ?? "",
     });
   }, [user?._id]);
 
   const updateProfileMutation = useMutation({
-    mutationFn: () => updateUser(user!._id, profileData),
+    mutationFn: () =>
+      api.patch("/users/me", {
+        name: profileData.firstName,
+        lastName: profileData.lastName,
+        phone: profileData.phone,
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["user", "me"] });
       alert("Perfil actualizado exitosamente");
@@ -158,25 +164,32 @@ export default function EditProfileView() {
 
               <div>
                 <label
-                  htmlFor="profile-email"
+                  htmlFor="profile-phone"
                   className="block text-sm font-medium text-muted-foreground mb-1"
                 >
-                  Email
+                  Teléfono
                 </label>
 
                 <input
-                  id="profile-email"
-                  type="email"
-                  value={profileData.emailAddress}
+                  id="profile-phone"
+                  type="tel"
+                  value={profileData.phone}
                   onChange={(e) =>
                     setProfileData({
                       ...profileData,
-                      emailAddress: e.target.value,
+                      phone: e.target.value,
                     })
                   }
                   className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                  required
+                  placeholder="+52 555 000 0000"
                 />
+              </div>
+
+              <div className="bg-muted/40 p-3 rounded-lg">
+                <p className="text-sm text-muted-foreground">
+                  <strong>Email:</strong> {user.emailAddress}
+                  <span className="ml-2 text-xs">(no editable)</span>
+                </p>
               </div>
 
               <div className="bg-muted p-4 rounded-lg">
