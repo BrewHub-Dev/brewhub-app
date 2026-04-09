@@ -2,19 +2,23 @@ import { User, Mail, Phone } from "lucide-react"
 
 interface PersonalInfoCardProps {
   displayName: string
+  lastName: string
   email: string
   phone?: string
   isEditing: boolean
   onNameChange?: (value: string) => void
+  onLastNameChange?: (value: string) => void
   onPhoneChange?: (value: string) => void
 }
 
 export default function PersonalInfoCard({
   displayName,
+  lastName,
   email,
   phone,
   isEditing,
   onNameChange,
+  onLastNameChange,
   onPhoneChange,
 }: Readonly<PersonalInfoCardProps>) {
   return (
@@ -25,17 +29,31 @@ export default function PersonalInfoCard({
       </h3>
       <div className="space-y-4">
         <div>
-          <label htmlFor="personal-nombre" className="text-sm text-muted-foreground block mb-1 font-medium">Nombre Completo</label>
+          <label htmlFor="personal-nombre" className="text-sm text-muted-foreground block mb-1 font-medium">Nombre</label>
           {isEditing ? (
             <input
               id="personal-nombre"
               type="text"
-              defaultValue={displayName}
+              value={displayName}
               onChange={(e) => onNameChange?.(e.target.value)}
               className="w-full glass rounded-xl px-4 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
             />
           ) : (
             <p className="text-foreground">{displayName || "No especificado"}</p>
+          )}
+        </div>
+        <div>
+          <label htmlFor="personal-apellido" className="text-sm text-muted-foreground block mb-1 font-medium">Apellido</label>
+          {isEditing ? (
+            <input
+              id="personal-apellido"
+              type="text"
+              value={lastName}
+              onChange={(e) => onLastNameChange?.(e.target.value)}
+              className="w-full glass rounded-xl px-4 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+          ) : (
+            <p className="text-foreground">{lastName || "No especificado"}</p>
           )}
         </div>
         <div>
@@ -54,7 +72,7 @@ export default function PersonalInfoCard({
             <input
               id="personal-telefono"
               type="tel"
-              defaultValue={phone}
+              value={phone}
               onChange={(e) => onPhoneChange?.(e.target.value)}
               placeholder="+52 123 456 7890"
               className="w-full glass rounded-xl px-4 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"

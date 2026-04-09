@@ -2,7 +2,7 @@ import api, { BASE } from "@/lib/api";
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/lib/auth-store'
 import { useToast } from '@/components/ui/toast/ToastProvider'
-import { isTokenExpired } from '@/lib/auth-service'
+import { isTokenExpired, refreshAccessToken } from '@/lib/auth-service'
 import { useRouter } from 'next/navigation'
 
 type LoginPayload = { emailAddress: string; password: string };
@@ -73,8 +73,14 @@ async function fetchSessionRequest(): Promise<Session> {
   try {
     if (typeof window === "undefined") return null;
 
-    const token = localStorage.getItem("bh_token");
-    if (!token || isTokenExpired(token)) return null;
+    let token = localStorage.getItem("bh_token");
+    if (!token) return null;
+
+    if (isTokenExpired(token)) {
+      const refreshed = await refreshAccessToken();
+      if (!refreshed) return null;
+      token = refreshed.token;
+    }
 
     const rawUser = localStorage.getItem("bh_user");
     const storedUser = rawUser ? JSON.parse(rawUser) : null;
@@ -85,6 +91,26 @@ async function fetchSessionRequest(): Promise<Session> {
 
     const url = `${BASE.replace(/\/+$/, "")}/users/me`;
     const res = await fetch(url, { credentials: "include", headers });
+
+    if (res.status === 401) {
+      const refreshed = await refreshAccessToken();
+      if (!refreshed) return null;
+      
+      const retryHeaders: Record<string, string> = { Authorization: `Bearer ${refreshed.token}` };
+      if (tenantId) retryHeaders["X-Tenant-Id"] = tenantId;
+      
+      const retryRes = await fetch(url, { credentials: "include", headers: retryHeaders });
+      if (!retryRes.ok) return null;
+      
+      const user = await retryRes.json();
+      if (user?._id) {
+        return {
+          id: "session",
+          user: { id: user._id, emailAddress: user.emailAddress, ...user },
+        };
+      }
+      return null;
+    }
 
     if (!res.ok) return null;
 

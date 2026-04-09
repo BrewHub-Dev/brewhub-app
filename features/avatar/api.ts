@@ -66,3 +66,7 @@ export function useUserData(userId?: string | null, hasPermission: boolean = tru
     retry: false,
   });
 }
+
+export async function updateUserData(userId: string, data: { phone?: string }): Promise<UserData> {
+  return api.patch<UserData>(`/users/${userId}`, data);
+}

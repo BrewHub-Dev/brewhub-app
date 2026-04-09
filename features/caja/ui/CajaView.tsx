@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 import {
   getZReport,
@@ -29,6 +29,24 @@ import {
   Clock,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { DateTime } from "luxon"
+import { get } from "@/lib/api"
+
+import { useAuth } from "@/lib/auth-store"
+
+interface BranchData {
+  _id: string
+  name: string
+  timezone?: string
+}
+
+interface ShopData {
+  _id: string
+  name: string
+  localization?: {
+    timezone?: string
+  }
+}
 
 const PAYMENT_ICONS: Record<string, React.ElementType> = {
   cash: Banknote,
@@ -49,20 +67,22 @@ const STATUS_COLOR: Record<string, string> = {
   ready: "bg-teal-100 text-teal-700",
 }
 
-function todayISO() {
-  return new Date().toISOString().slice(0, 10)
+function getTodayInZone(timezone: string = "America/Mexico_City"): string {
+  return DateTime.now().setZone(timezone).toISODate() || DateTime.now().toISODate()
 }
 
 function fmt(n: number) {
   return n.toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
-function fmtTime(iso: string) {
-  return new Date(iso).toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" })
+function fmtTime(iso: string, timezone: string = "America/Mexico_City") {
+  if (!iso) return "-"
+  const dt = DateTime.fromISO(iso, { zone: "utc" }).setZone(timezone)
+  return dt.toFormat("HH:mm")
 }
 
-// ── Expandable order row ───────────────────────────────────
-function OrderRow({ order }: { order: ZReportOrder }) {
+
+function OrderRow({ order, timezone }: { order: ZReportOrder; timezone: string }) {
   const [open, setOpen] = useState(false)
   const Icon = PAYMENT_ICONS[order.paymentMethod] ?? Banknote
 
@@ -125,22 +145,73 @@ function OrderRow({ order }: { order: ZReportOrder }) {
   )
 }
 
-// ── Main view ─────────────────────────────────────────────
 export default function CajaView() {
-  const [selectedDate, setSelectedDate] = useState(todayISO())
+  const { user } = useAuth()
+  const isShopAdmin = user?.role === "SHOP_ADMIN"
+  const [selectedDate, setSelectedDate] = useState(getTodayInZone())
+  const [selectedBranchId, setSelectedBranchId] = useState<string>("")
+  const [branchTimezone, setBranchTimezone] = useState<string>("America/Mexico_City")
   const [exporting, setExporting] = useState(false)
   const [activeTab, setActiveTab] = useState<"resumen" | "ordenes" | "items">("resumen")
 
+  useEffect(() => {
+    const saved = localStorage.getItem("selectedBranchId")
+    if (saved) {
+      setSelectedBranchId(saved)
+    }
+  }, [])
+
+  useEffect(() => {
+    async function fetchTimezone() {
+      if (!isShopAdmin) {
+        if (user?.ShopId) {
+          try {
+            const shop = await get<ShopData>(`/shops/${user.ShopId}`)
+            if (shop?.localization?.timezone) {
+              setBranchTimezone(shop.localization.timezone)
+            }
+          } catch (err) {
+            console.error("Failed to fetch shop timezone", err)
+          }
+        }
+        return
+      }
+
+      if (!selectedBranchId) return
+      try {
+        const branch = await get<BranchData>(`/branches/${selectedBranchId}`)
+        if (branch?.timezone) {
+          setBranchTimezone(branch.timezone)
+        }
+      } catch (err) {
+        console.error("Failed to fetch branch timezone", err)
+      }
+    }
+    fetchTimezone()
+  }, [selectedBranchId, isShopAdmin, user?.ShopId])
+
+  useEffect(() => {
+    const handleBranchChange = (e: CustomEvent) => {
+      setSelectedBranchId(e.detail.branchId)
+    }
+    window.addEventListener("branchSelected", handleBranchChange as EventListener)
+    return () => window.removeEventListener("branchSelected", handleBranchChange as EventListener)
+  }, [])
+
+  useEffect(() => {
+    setSelectedDate(getTodayInZone(branchTimezone))
+  }, [branchTimezone])
+
   const { data, isLoading, refetch, isFetching } = useQuery({
-    queryKey: ["z-report", selectedDate],
-    queryFn: () => getZReport(selectedDate),
+    queryKey: ["z-report", selectedDate, selectedBranchId],
+    queryFn: () => getZReport(selectedDate, selectedBranchId || undefined),
     staleTime: 60_000,
   })
 
   async function handleExport() {
     setExporting(true)
     try {
-      await downloadZReportCSV(selectedDate)
+      await downloadZReportCSV(selectedDate, selectedBranchId || undefined)
     } finally {
       setExporting(false)
     }
@@ -152,17 +223,19 @@ export default function CajaView() {
     <div className="p-6 md:p-8">
       <div className="max-w-4xl mx-auto">
 
-        {/* Header */}
         <div className="flex flex-wrap items-start justify-between gap-4 mb-8">
           <div>
             <h1 className="text-3xl font-bold text-foreground">Cierre de Caja</h1>
             <p className="text-muted-foreground mt-1">Z-Report — Reporte de ventas del día</p>
+            {data?.timezone && (
+              <p className="text-xs text-muted-foreground mt-1">Zona horaria: {data.timezone}</p>
+            )}
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <input
               type="date"
               value={selectedDate}
-              max={todayISO()}
+              max={getTodayInZone(branchTimezone)}
               onChange={(e) => setSelectedDate(e.target.value)}
               className="px-3 py-2 rounded-xl border border-border bg-card text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary"
             />
@@ -193,7 +266,6 @@ export default function CajaView() {
         ) : !data ? null : (
           <div className="space-y-6">
 
-            {/* KPI cards */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="glass rounded-2xl p-5 flex flex-col gap-1">
                 <div className="flex items-center gap-2 text-muted-foreground text-xs uppercase tracking-wide">
@@ -228,7 +300,6 @@ export default function CajaView() {
               </div>
             </div>
 
-            {/* Tax/subtotal detail */}
             {(data.totalTax > 0 || data.totalDiscount > 0) && (
               <div className="glass rounded-2xl p-5 flex flex-wrap gap-6">
                 <div>
@@ -341,14 +412,13 @@ export default function CajaView() {
                 ) : (
                   <div className="space-y-2 max-h-[600px] overflow-y-auto pr-1">
                     {data.orders.map((order) => (
-                      <OrderRow key={order._id} order={order} />
+                      <OrderRow key={order._id} order={order} timezone={data.timezone} />
                     ))}
                   </div>
                 )}
               </div>
             )}
 
-            {/* Tab: Items vendidos */}
             {activeTab === "items" && (
               <div className="glass rounded-2xl p-6">
                 <h2 className="font-semibold text-foreground mb-4 flex items-center gap-2">
@@ -387,7 +457,6 @@ export default function CajaView() {
               </div>
             )}
 
-            {/* Empty state */}
             {!hasData && (
               <div className="text-center py-16 text-muted-foreground">
                 <Receipt className="w-12 h-12 mx-auto mb-4 opacity-30" />

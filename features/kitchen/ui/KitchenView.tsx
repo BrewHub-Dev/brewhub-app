@@ -46,7 +46,7 @@ function KitchenCard({ order }: { order: KitchenOrder }) {
 
   return (
     <div className={`rounded-2xl border-2 ${config.color} ${isUrgent ? "ring-2 ring-destructive/50" : ""} p-5 flex flex-col gap-3 transition-all`}>
-      {/* Header */}
+
       <div className="flex items-start justify-between">
         <div>
           <div className="flex items-center gap-2 mb-1">
@@ -71,7 +71,6 @@ function KitchenCard({ order }: { order: KitchenOrder }) {
         </div>
       </div>
 
-      {/* Items */}
       <div className="space-y-2 border-t border-border/40 pt-3">
         {order.items.map((item, idx) => (
           <div key={idx} className="flex items-start justify-between gap-2">
@@ -99,14 +98,12 @@ function KitchenCard({ order }: { order: KitchenOrder }) {
         ))}
       </div>
 
-      {/* Order notes */}
       {order.notes && (
         <div className="rounded-lg bg-warning/10 border border-warning/20 px-3 py-2">
           <p className="text-xs font-medium text-warning">Nota de orden: {order.notes}</p>
         </div>
       )}
 
-      {/* Action button */}
       <Button
         onClick={() => advanceMutation.mutate({ orderId: order._id, newStatus: config.nextStatus })}
         disabled={advanceMutation.isPending}
@@ -134,7 +131,6 @@ export default function KitchenView() {
 
   return (
     <div className="p-6 min-h-screen">
-      {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
@@ -183,7 +179,6 @@ export default function KitchenView() {
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Confirmed column */}
           <div>
             <div className="flex items-center gap-2 mb-4">
               <Clock className="w-5 h-5 text-primary" />
@@ -203,7 +198,6 @@ export default function KitchenView() {
             </div>
           </div>
 
-          {/* Preparing column */}
           <div>
             <div className="flex items-center gap-2 mb-4">
               <Utensils className="w-5 h-5 text-warning" />
@@ -223,7 +217,6 @@ export default function KitchenView() {
             </div>
           </div>
 
-          {/* Ready column */}
           <div>
             <div className="flex items-center gap-2 mb-4">
               <CheckCircle2 className="w-5 h-5 text-success" />

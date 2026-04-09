@@ -23,6 +23,7 @@ export interface ZReportOrder {
 
 export interface ZReportData {
   date: string
+  timezone: string
   generatedAt: string
   totalOrders: number
   totalRevenue: number
@@ -57,9 +58,11 @@ export const STATUS_LABELS: Record<string, string> = {
   refunded: "Reembolsada",
 }
 
-export async function getZReport(date: string): Promise<ZReportData | null> {
+export async function getZReport(date: string, BranchId?: string): Promise<ZReportData | null> {
   try {
-    const result = await api.get<ZReportData>(`/orders/z-report?date=${date}`)
+    let url = `/orders/z-report?date=${date}`
+    if (BranchId) url += `&BranchId=${BranchId}`
+    const result = await api.get<ZReportData>(url)
     if (result && typeof result.totalOrders === "number") return result
   } catch (err) {
     console.error("[ZReport] API error:", err)
@@ -67,14 +70,16 @@ export async function getZReport(date: string): Promise<ZReportData | null> {
   return null
 }
 
-export async function downloadZReportCSV(date: string): Promise<void> {
-  const blob = await api.download(`/orders/z-report/csv?date=${date}`)
-  const url = URL.createObjectURL(blob)
+export async function downloadZReportCSV(date: string, BranchId?: string): Promise<void> {
+  let url = `/orders/z-report/csv?date=${date}`
+  if (BranchId) url += `&BranchId=${BranchId}`
+  const blob = await api.download(url)
+  const objectUrl = URL.createObjectURL(blob)
   const a = document.createElement("a")
-  a.href = url
+  a.href = objectUrl
   a.download = `cierre-caja-${date}.csv`
   document.body.appendChild(a)
   a.click()
   document.body.removeChild(a)
-  URL.revokeObjectURL(url)
+  URL.revokeObjectURL(objectUrl)
 }

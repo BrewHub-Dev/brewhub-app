@@ -65,7 +65,6 @@ function InviteForm({
                 </button>
             </div>
 
-            {/* TYPE */}
             <div>
                 <label className="text-xs text-muted-foreground uppercase tracking-wide mb-2 block">
                     Tipo
@@ -221,9 +220,6 @@ export default function InvitationsView() {
     return (
         <div className="p-8">
             <div className="max-w-4xl mx-auto">
-
-                {/* HEADER */}
-
                 <div className="flex items-center justify-between mb-8">
                     <div>
                         <h1 className="text-3xl font-bold text-foreground">
@@ -245,8 +241,6 @@ export default function InvitationsView() {
                     </Button>
                 </div>
 
-                {/* FORM */}
-
                 {showForm && (
                     <div className="mb-6">
                         <InviteForm
@@ -257,16 +251,12 @@ export default function InvitationsView() {
                     </div>
                 )}
 
-                {/* LOADING */}
-
                 {isLoading ? (
                     <div className="flex items-center justify-center h-40">
                         <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
                     </div>
                 ) : (
                     <>
-                        {/* ACTIVE */}
-
                         {activeInvitations.length > 0 && (
                             <div className="space-y-3">
 
@@ -349,8 +339,6 @@ export default function InvitationsView() {
                                 ))}
                             </div>
                         )}
-
-                        {/* EMPTY */}
 
                         {activeInvitations.length === 0 && !showForm && (
                             <div className="text-center py-20 text-muted-foreground">

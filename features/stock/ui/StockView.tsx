@@ -246,7 +246,6 @@ function FormModal({ initial, branches, defaultBranchId, onSave, onClose, loadin
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          {/* Branch selector */}
           <div>
             <label className="block text-sm font-medium text-foreground mb-1">
               Branch <span className="text-red-500">*</span>
@@ -701,7 +700,6 @@ export default function StockView() {
   return (
     <div className="p-6 md:p-8">
       <div className="max-w-4xl mx-auto">
-        {/* Header */}
         <div className="flex items-start justify-between mb-6">
           <div>
             <h1 className="text-3xl font-bold text-foreground">Control de Stock</h1>
@@ -739,7 +737,6 @@ export default function StockView() {
           <StockDisabled onEnable={() => toggleMutation.mutate(true)} />
         ) : (
           <>
-            {/* Branch selector */}
             <BranchTabs
               branches={branches}
               selected={selectedBranch}
@@ -751,7 +748,6 @@ export default function StockView() {
               loading={loadingBranches}
             />
 
-            {/* Low stock alert */}
             {(outCount > 0 || lowCount > 0) && (
               <div className="mb-6 p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/30 flex items-center gap-3">
                 <AlertTriangle className="w-5 h-5 text-yellow-600 shrink-0" />
@@ -764,7 +760,6 @@ export default function StockView() {
               </div>
             )}
 
-            {/* Stats */}
             <div className="grid grid-cols-3 gap-4 mb-6">
               <button
                 onClick={() => setFilter("all")}
@@ -789,7 +784,6 @@ export default function StockView() {
               </button>
             </div>
 
-            {/* Search + Actions */}
             <div className="flex gap-3 mb-4">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -822,7 +816,6 @@ export default function StockView() {
               )}
             </div>
 
-            {/* Items list */}
             {loadingItems ? (
               <div className="flex items-center justify-center h-40">
                 <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
@@ -873,7 +866,6 @@ export default function StockView() {
         )}
       </div>
 
-      {/* Create modal */}
       {showForm && (
         <FormModal
           initial={null}
@@ -885,7 +877,6 @@ export default function StockView() {
         />
       )}
 
-      {/* Edit modal */}
       {editingItem && (
         <FormModal
           initial={editingItem}
@@ -897,7 +888,6 @@ export default function StockView() {
         />
       )}
 
-      {/* Delete confirm */}
       {deletingItem && (
         <DeleteConfirm
           name={deletingItem.name}

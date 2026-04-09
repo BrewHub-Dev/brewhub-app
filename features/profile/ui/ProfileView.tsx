@@ -7,15 +7,19 @@ import ShopAvatar from "@/features/avatar/ui/ShopAvatar"
 import PersonalInfoCard from "./PersonalInfoCard"
 import WorkInfoCard from "./WorkInfoCard"
 import PreferencesCard from "./PreferencesCard"
-import { getUserPreferences, updateUserPreferences } from "../api"
+import { getUserPreferences, updateUserPreferences, updateUserProfile } from "../api"
 import type { UserPreferences } from "../types"
 
 export default function ProfileView() {
-  const { user } = useAuth()
+  const { user, updateUser } = useAuth()
   const userId = user?._id
   const { data: userData } = useUserData(userId)
 
   const [isEditing, setIsEditing] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+  const [name, setName] = useState(user?.name || "")
+  const [lastName, setLastName] = useState(user?.lastName || "")
+  const [phone, setPhone] = useState(userData?.phone || "")
   const [preferences, setPreferences] = useState<UserPreferences>({
     emailNotifications: true,
     darkMode: true,
@@ -28,7 +32,20 @@ export default function ProfileView() {
     }
   }, [userId])
 
-  const displayName = user ? [user?.name, user?.lastName].filter(Boolean).join(" ") : ""
+  useEffect(() => {
+    if (user) {
+      setName(user.name || "")
+      setLastName(user.lastName || "")
+    }
+  }, [user])
+
+  useEffect(() => {
+    if (userData?.phone !== undefined) {
+      setPhone(userData.phone || "")
+    }
+  }, [userData])
+
+  const displayName = [name, lastName].filter(Boolean).join(" ")
   const email = user?.emailAddress || ""
   const branchName = userData?.branch?.name ?? "No asignada"
   const shopId = user?.ShopId ?? userData?.ShopId
@@ -38,6 +55,37 @@ export default function ProfileView() {
     setPreferences(newPreferences)
     if (userId) {
       updateUserPreferences(userId, newPreferences)
+    }
+  }
+
+  const handleSave = async () => {
+    if (!userId) return
+    setIsSaving(true)
+    try {
+      const updateData: { name: string; lastName?: string; phone?: string } = {
+        name: name.trim(),
+      }
+      
+      if (lastName.trim()) {
+        updateData.lastName = lastName.trim()
+      }
+      
+      if (phone.trim()) {
+        updateData.phone = phone.trim()
+      }
+      
+      const updatedUser = await updateUserProfile(userId, updateData)
+      
+      updateUser({
+        name: updatedUser.name,
+        lastName: updatedUser.lastName,
+      })
+      
+      setIsEditing(false)
+    } catch (error) {
+      console.error("Error saving profile:", error)
+    } finally {
+      setIsSaving(false)
     }
   }
 
@@ -76,10 +124,14 @@ export default function ProfileView() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           <PersonalInfoCard
-            displayName={displayName}
+            displayName={name}
+            lastName={lastName}
             email={email}
-            phone={userData?.phone || ""}
+            phone={phone}
             isEditing={isEditing}
+            onNameChange={setName}
+            onLastNameChange={setLastName}
+            onPhoneChange={setPhone}
           />
           <WorkInfoCard
             branchName={branchName}
@@ -96,17 +148,27 @@ export default function ProfileView() {
         {isEditing && (
           <div className="flex justify-end gap-4">
             <button
-              onClick={() => setIsEditing(false)}
+              onClick={() => {
+                setIsEditing(false)
+                setName(user?.name || "")
+                setLastName(user?.lastName || "")
+                setPhone(userData?.phone || "")
+              }}
               className="px-6 py-3 bg-muted/20 text-foreground rounded-lg hover:bg-muted/40 transition-all"
             >
               Cancelar
             </button>
             <button
-              onClick={() => setIsEditing(false)}
-              className="px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all flex items-center gap-2 font-medium"
+              onClick={handleSave}
+              disabled={isSaving}
+              className="px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all flex items-center gap-2 font-medium disabled:opacity-50"
             >
-              <Save className="w-5 h-5" />
-              Guardar Cambios
+              {isSaving ? (
+                <span className="animate-spin">⟳</span>
+              ) : (
+                <Save className="w-5 h-5" />
+              )}
+              {isSaving ? "Guardando..." : "Guardar Cambios"}
             </button>
           </div>
         )}

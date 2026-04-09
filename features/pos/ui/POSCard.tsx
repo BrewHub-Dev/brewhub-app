@@ -253,7 +253,6 @@ export default function POSCard() {
               />
             </div>
 
-            {/* Cliente */}
             <div>
               <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1 block">Cliente (opcional)</label>
               <Input
@@ -305,7 +304,6 @@ export default function POSCard() {
               </div>
             </div>
 
-            {/* Category filter */}
             {categories.length > 0 && (
               <div className="flex gap-1.5 flex-wrap">
                 <button
@@ -339,7 +337,6 @@ export default function POSCard() {
               </div>
             )}
 
-            {/* Payment method */}
             <div>
               <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2 block">
                 Método de pago
@@ -362,7 +359,6 @@ export default function POSCard() {
               </div>
             </div>
 
-            {/* Descuento */}
             {canDiscount && (
               <div>
                 <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1 block">

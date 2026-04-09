@@ -40,6 +40,30 @@ export async function logout(): Promise<void> {
   }
 }
 
+export async function refreshAccessToken(): Promise<{ token: string; refreshToken: string } | null> {
+  try {
+    const res = await fetch(`${BASE_URL}/sessions/refresh`, {
+      method: "POST",
+      credentials: "include",
+    });
+
+    if (!res.ok) {
+      return null;
+    }
+
+    const data = await res.json();
+    if (data.token) {
+      localStorage.setItem("bh_token", data.token);
+      return { token: data.token, refreshToken: data.refreshToken || "" };
+    }
+
+    return null;
+  } catch (err) {
+    console.error("Token refresh failed:", err);
+    return null;
+  }
+}
+
 export async function validateSession(): Promise<User | null> {
   try {
     const res = await fetch(`${BASE_URL}/sessions`, {
@@ -78,6 +102,19 @@ export function isTokenExpired(token: string): boolean {
 
     const now = Math.floor(Date.now() / 1000);
     return decoded.exp < now;
+  } catch {
+    return true;
+  }
+}
+
+export function isTokenExpiringSoon(token: string): boolean {
+  try {
+    const decoded = decodeToken(token);
+    if (!decoded?.exp) return true;
+
+    const now = Math.floor(Date.now() / 1000);
+    const buffer = 5 * 60;
+    return decoded.exp < now + buffer;
   } catch {
     return true;
   }

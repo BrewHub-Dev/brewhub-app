@@ -143,7 +143,6 @@ export default function QRScannerView() {
   return (
     <div className="p-8">
       <div className="max-w-2xl mx-auto">
-        {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
             <ScanLine className="w-8 h-8 text-primary" />
@@ -154,7 +153,6 @@ export default function QRScannerView() {
           </p>
         </div>
 
-        {/* Scanner */}
         {state.phase === "scanning" && (
           <div className="rounded-xl border border-border/50 bg-card/30 glass overflow-hidden">
             <div className="p-4 border-b border-border/30 flex items-center gap-2">
@@ -175,7 +173,6 @@ export default function QRScannerView() {
           </div>
         )}
 
-        {/* Loading */}
         {state.phase === "loading" && (
           <div className="rounded-xl border border-border/50 bg-card/30 glass p-12 flex flex-col items-center gap-4">
             <Loader2 className="w-10 h-10 animate-spin text-primary" />
@@ -183,7 +180,6 @@ export default function QRScannerView() {
           </div>
         )}
 
-        {/* Order Found */}
         {state.phase === "found" && (
           <OrderCard
             order={state.order}
@@ -195,7 +191,6 @@ export default function QRScannerView() {
           />
         )}
 
-        {/* Success */}
         {state.phase === "success" && (
           <div className="rounded-xl border border-green-500/30 bg-green-500/10 p-8 flex flex-col items-center gap-4">
             <CheckCircle2 className="w-12 h-12 text-green-500" />
@@ -213,7 +208,6 @@ export default function QRScannerView() {
           </div>
         )}
 
-        {/* Error */}
         {state.phase === "error" && (
           <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-8 flex flex-col items-center gap-4">
             <AlertCircle className="w-12 h-12 text-red-500" />
@@ -251,7 +245,6 @@ function OrderCard({
 
   return (
     <div className="rounded-xl border border-border/50 bg-card/30 glass overflow-hidden">
-      {/* Order header */}
       <div className="p-5 border-b border-border/30">
         <div className="flex items-center justify-between mb-3">
           <p className="text-lg font-mono font-bold text-foreground">#{order.orderNumber}</p>
@@ -274,7 +267,6 @@ function OrderCard({
         )}
       </div>
 
-      {/* Items */}
       <div className="p-5 border-b border-border/30">
         <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-3">
           Items ({order.items?.length ?? 0})
@@ -296,7 +288,6 @@ function OrderCard({
         </div>
       </div>
 
-      {/* Totals */}
       <div className="p-5 border-b border-border/30">
         <div className="flex justify-between text-sm mb-1">
           <span className="text-muted-foreground">Subtotal</span>
@@ -318,7 +309,6 @@ function OrderCard({
         </div>
       </div>
 
-      {/* Actions */}
       <div className="p-5 flex gap-3">
         {nextStatus ? (
           <Button
