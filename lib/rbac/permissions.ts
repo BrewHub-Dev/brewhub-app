@@ -60,6 +60,12 @@ export type Permission =
   | "invitations:view"
   | "invitations:manage"
 
+  // Promociones
+  | "promocodes:manage"
+
+  // Recetas
+  | "recipes:manage"
+
   // Perfil
   | "profile:view"
   | "profile:edit";
@@ -132,6 +138,12 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "invitations:view",
     "invitations:manage",
 
+    // Promociones
+    "promocodes:manage",
+
+    // Recetas
+    "recipes:manage",
+
     // Perfil
     "profile:view",
     "profile:edit",
@@ -198,6 +210,12 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     // Invitaciones
     "invitations:view",
     "invitations:manage",
+
+    // Promociones
+    "promocodes:manage",
+
+    // Recetas
+    "recipes:manage",
   ],
 
   /**

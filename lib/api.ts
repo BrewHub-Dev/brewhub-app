@@ -15,17 +15,12 @@ function extractErrorMessage(data: unknown, fallback: string) {
   return fallback;
 }
 
-/**
- * Obtiene el tenantId activo del usuario guardado en localStorage.
- * Esto es requerido por el backend para todos los endpoints multi-tenant.
- */
 function getTenantId(): string | null {
   try {
     if (typeof window === "undefined") return null;
     const rawUser = localStorage.getItem("bh_user");
     if (!rawUser) return null;
     const user = JSON.parse(rawUser);
-    // ShopId es el tenantId principal del usuario
     return user?.ShopId ?? user?.tenantId ?? null;
   } catch {
     return null;

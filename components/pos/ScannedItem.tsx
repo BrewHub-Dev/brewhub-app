@@ -49,7 +49,7 @@ export default function ScannedItem({
       <div
         ref={ref}
         onPointerDown={(e) => {
-          ;(e.target as Element).setPointerCapture?.(e.pointerId)
+          ; (e.target as Element).setPointerCapture?.(e.pointerId)
           handlePointerStart(e.clientX, e.pointerId)
         }}
         onPointerMove={(e) => {

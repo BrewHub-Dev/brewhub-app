@@ -14,6 +14,8 @@ export interface PaginationMeta {
 interface PaginationProps {
   pagination: PaginationMeta
   onPageChange: (page: number) => void
+  onLimitChange?: (limit: number) => void
+  limitOptions?: number[]
   className?: string
 }
 
@@ -30,9 +32,9 @@ function getPageNumbers(current: number, total: number): (number | "...")[] {
   return pages
 }
 
-export function Pagination({ pagination, onPageChange, className = "" }: PaginationProps) {
+export function Pagination({ pagination, onPageChange, onLimitChange, limitOptions, className = "" }: PaginationProps) {
   const { page, pages, total, limit, hasNext, hasPrev } = pagination
-  if (pages <= 1) return null
+  if (pages <= 1 && !onLimitChange) return null
 
   const from = (page - 1) * limit + 1
   const to = Math.min(page * limit, total)
@@ -40,13 +42,32 @@ export function Pagination({ pagination, onPageChange, className = "" }: Paginat
 
   return (
     <div className={`flex flex-col sm:flex-row items-center justify-between gap-4 mt-6 ${className}`}>
-      <p className="text-sm text-muted-foreground">
-        Mostrando{" "}
-        <span className="font-medium text-foreground">{from}–{to}</span>{" "}
-        de{" "}
-        <span className="font-medium text-foreground">{total}</span>{" "}
-        resultados
-      </p>
+      <div className="flex items-center gap-2">
+        {onLimitChange && (
+          <>
+            <span className="text-sm text-muted-foreground">Mostrar</span>
+            <select
+              value={limit}
+              onChange={(e) => onLimitChange(Number(e.target.value))}
+              className="h-8 px-2 rounded-lg border border-border bg-background text-sm hover:bg-muted/50 transition-colors"
+            >
+              {(limitOptions || [20, 30, 40]).map((size) => (
+                <option key={size} value={size}>{size}</option>
+              ))}
+            </select>
+            <span className="text-sm text-muted-foreground">por página</span>
+          </>
+        )}
+        {!onLimitChange && (
+          <p className="text-sm text-muted-foreground">
+            Mostrando{" "}
+            <span className="font-medium text-foreground">{from}–{to}</span>{" "}
+            de{" "}
+            <span className="font-medium text-foreground">{total}</span>{" "}
+            resultados
+          </p>
+        )}
+      </div>
 
       <div className="flex items-center gap-1">
         <button

@@ -138,38 +138,62 @@ interface AggregatedItem {
   totalQuantity: number
   minQuantity: number
   branchCount: number
+  byBranch?: Record<string, { quantity: number; branchName: string }>
 }
 
-function GlobalRow({ item }: { item: AggregatedItem }) {
+function GlobalRow({ item, branches }: { item: AggregatedItem; branches: Branch[] }) {
   const isOut = item.totalQuantity === 0
   const isLow = item.totalQuantity > 0 && item.totalQuantity <= item.minQuantity
+  const branchList = Object.values(item.byBranch || {})
+  const [expanded, setExpanded] = useState(false)
 
   return (
-    <div className="flex items-center gap-3 p-4 rounded-xl border border-border/40 bg-card/30">
-      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-        <Coffee className="w-5 h-5 text-primary" />
+    <div className="flex flex-col gap-2 p-4 rounded-xl border border-border/40 bg-card/30">
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+          <Coffee className="w-5 h-5 text-primary" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="font-semibold text-foreground text-sm truncate">{item.name}</p>
+          <p className="text-xs text-muted-foreground">{item.category}</p>
+        </div>
+        {isOut ? (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-700 border border-red-200">
+            <X className="w-3 h-3" /> Sin stock
+          </span>
+        ) : isLow ? (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700 border border-yellow-200">
+            <AlertTriangle className="w-3 h-3" /> Stock bajo
+          </span>
+        ) : (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-700 border border-green-200">
+            <CheckCircle2 className="w-3 h-3" /> OK
+          </span>
+        )}
+        <div className="text-right shrink-0">
+          <span className="font-bold text-lg tabular-nums">{item.totalQuantity}</span>
+          <span className="text-xs text-muted-foreground ml-1">{item.unit}</span>
+        </div>
+        <button
+          onClick={() => setExpanded(!expanded)}
+          className="p-2 rounded-lg hover:bg-muted/30 text-muted-foreground transition-all"
+        >
+          <GitBranch className={`w-4 h-4 transition-transform ${expanded ? "rotate-180" : ""}`} />
+        </button>
       </div>
-      <div className="flex-1 min-w-0">
-        <p className="font-semibold text-foreground text-sm truncate">{item.name}</p>
-        <p className="text-xs text-muted-foreground">{item.category} · {item.branchCount} branch{item.branchCount !== 1 ? "es" : ""}</p>
-      </div>
-      {isOut ? (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-700 border border-red-200">
-          <X className="w-3 h-3" /> Sin stock
-        </span>
-      ) : isLow ? (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700 border border-yellow-200">
-          <AlertTriangle className="w-3 h-3" /> Stock bajo
-        </span>
-      ) : (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-700 border border-green-200">
-          <CheckCircle2 className="w-3 h-3" /> OK
-        </span>
+
+      {expanded && branchList.length > 0 && (
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-2 border-t border-border/30">
+          {branchList.map((b, idx) => (
+            <div key={idx} className="flex items-center justify-between p-2 rounded-lg bg-muted/20">
+              <span className="text-xs text-muted-foreground truncate">{b.branchName}</span>
+              <span className={`text-sm font-semibold ${b.quantity === 0 ? "text-red-500" : b.quantity <= 5 ? "text-yellow-500" : "text-green-500"}`}>
+                {b.quantity} {item.unit}
+              </span>
+            </div>
+          ))}
+        </div>
       )}
-      <div className="text-right shrink-0">
-        <span className="font-bold text-lg tabular-nums">{item.totalQuantity}</span>
-        <span className="text-xs text-muted-foreground ml-1">{item.unit}</span>
-      </div>
     </div>
   )
 }
@@ -567,11 +591,24 @@ export default function StockView() {
     enabled: stockEnabled === true,
   })
 
-  const branchId = selectedBranch === "global" ? undefined : selectedBranch
-
+// Fetch ALL items when in global mode
   const { data: paginatedStock, isLoading: loadingItems, refetch, isFetching } = useQuery({
-    queryKey: ["stock-items", branchId],
-    queryFn: () => getStockItems({ limit: 200, branchId }),
+    queryKey: ["stock-items", selectedBranch],
+    queryFn: async () => {
+      if (selectedBranch === "global") {
+        const branchIdForQuery = selectedBranch === "global" ? undefined : selectedBranch
+        if (!branchIdForQuery) {
+          const allItems: StockItem[] = []
+          for (const branch of branches) {
+            const result = await getStockItems({ limit: 200, branchId: branch._id })
+            allItems.push(...result.data)
+          }
+          return { data: allItems, pagination: { total: allItems.length, page: 1, limit: 200, pages: 1, hasNext: false, hasPrev: false } }
+        }
+        return getStockItems({ limit: 200, branchId: branchIdForQuery })
+      }
+      return getStockItems({ limit: 200, branchId: selectedBranch })
+    },
     enabled: stockEnabled === true,
   })
 
@@ -622,16 +659,21 @@ export default function StockView() {
     [adjustMutation]
   )
 
-  // Global view: aggregate by name+unit
+  // Global view: aggregate by name+unit and show by branch
   const aggregated: AggregatedItem[] = (() => {
     if (selectedBranch !== "global") return []
     const map = new Map<string, AggregatedItem>()
     for (const item of items) {
+      const branch = branches.find(b => b._id === item.branchId)
+      const branchName = branch?.name || "Unknown"
       const key = `${item.name}::${item.unit}`
       const existing = map.get(key)
       if (existing) {
         existing.totalQuantity += item.quantity
         existing.branchCount += 1
+        if (existing.byBranch) {
+          existing.byBranch[item.branchId] = { quantity: item.quantity, branchName }
+        }
       } else {
         map.set(key, {
           name: item.name,
@@ -640,6 +682,7 @@ export default function StockView() {
           totalQuantity: item.quantity,
           minQuantity: item.minQuantity,
           branchCount: 1,
+          byBranch: { [item.branchId]: { quantity: item.quantity, branchName } },
         })
       }
     }
@@ -829,7 +872,7 @@ export default function StockView() {
               ) : (
                 <div className="space-y-2">
                   {filteredAggregated.map((item) => (
-                    <GlobalRow key={`${item.name}::${item.unit}`} item={item} />
+                    <GlobalRow key={`${item.name}::${item.unit}`} item={item} branches={branches} />
                   ))}
                 </div>
               )

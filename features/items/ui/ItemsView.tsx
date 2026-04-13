@@ -1,27 +1,39 @@
 "use client"
 import { useState } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { Plus, Search } from "lucide-react"
+import { Plus, Search, ChevronLeft, ChevronRight } from "lucide-react"
 import ItemsStats from "./ItemsStats"
 import ItemsTable from "./ItemsTable"
 import ItemForm from "./ItemForm"
 import { getItems, createItem, updateItem, deleteItem } from "../api"
-import { Pagination } from "@/components/ui/Pagination"
 import type { Item, ItemFormData } from "../types"
+import { Button } from "@/components/ui/button"
+import { Pagination } from "@/components/ui/Pagination"
 
-const LIMIT = 20
+const PAGE_SIZES = [20, 30, 40] as const
 
 export default function ItemsView() {
   const [searchQuery, setSearchQuery] = useState("")
   const [page, setPage] = useState(1)
+  const [limit, setLimit] = useState(20)
   const [isCreating, setIsCreating] = useState(false)
   const [editingItem, setEditingItem] = useState<Item | null>(null)
   const queryClient = useQueryClient()
 
-  const { data = { data: [], pagination: { total: 0, page: 1, limit: LIMIT, pages: 0, hasNext: false, hasPrev: false } }, isLoading } = useQuery({
-    queryKey: ["items", page],
-    queryFn: () => getItems({ page, limit: LIMIT }),
+  const { data = { data: [], pagination: { total: 0, page: 1, limit: 20, pages: 0, hasNext: false, hasPrev: false } }, isLoading } = useQuery({
+    queryKey: ["items", page, limit],
+    queryFn: () => getItems({ page, limit }),
   })
+
+  function handleLimitChange(newLimit: number) {
+    setLimit(newLimit)
+    setPage(1)
+  }
+
+  function handlePageChange(newPage: number) {
+    setPage(newPage)
+    setSearchQuery("")
+  }
 
   const items = data.data
   const pagination = data.pagination
@@ -79,11 +91,6 @@ export default function ItemsView() {
     }
   }
 
-  function handlePageChange(newPage: number) {
-    setPage(newPage)
-    setSearchQuery("")
-  }
-
   return (
     <div className="p-8">
       <div className="max-w-7xl mx-auto">
@@ -123,7 +130,12 @@ export default function ItemsView() {
         />
 
         {!searchQuery && (
-          <Pagination pagination={pagination} onPageChange={handlePageChange} />
+          <Pagination 
+            pagination={pagination} 
+            onPageChange={handlePageChange}
+            onLimitChange={handleLimitChange}
+            limitOptions={[...PAGE_SIZES]}
+          />
         )}
 
         {(isCreating || editingItem) && (

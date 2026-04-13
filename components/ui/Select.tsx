@@ -72,8 +72,8 @@ export function Select({
         onClick={() => setOpen((prev) => !prev)}
         className={cn(
           "w-full rounded-lg px-4 py-2.5 flex items-center justify-between gap-2 text-sm",
-          "bg-white/60 backdrop-blur-md border border-white/20",
-          "hover:bg-white/70 transition-all duration-200",
+          "bg-background/80 backdrop-blur-md border border-border",
+          "hover:bg-muted/80 transition-all duration-200",
           "focus:outline-none focus:ring-2 focus:ring-primary/40",
           "disabled:opacity-50 disabled:cursor-not-allowed",
           open && "ring-2 ring-primary/40"
@@ -92,7 +92,7 @@ export function Select({
       </button>
 
       {open && (
-        <div className="absolute z-50 w-full mt-1.5 rounded-lg border border-white/20 bg-white/70 backdrop-blur-xl shadow-lg animate-in fade-in zoom-in-95 duration-150">
+        <div className="absolute z-50 w-full mt-1.5 rounded-lg border border-border bg-popover backdrop-blur-xl shadow-lg animate-in fade-in zoom-in-95 duration-150">
           <div className="max-h-56 overflow-y-auto py-1">
             {placeholder !== undefined && (
               <button
@@ -103,7 +103,7 @@ export function Select({
                 }}
                 className={cn(
                   "w-full px-4 py-2 text-left text-sm flex items-center justify-between",
-                  "hover:bg-primary/10 transition-colors",
+                  "hover:bg-accent transition-colors",
                   value === "" && "text-primary font-medium"
                 )}
               >
@@ -125,7 +125,7 @@ export function Select({
                 }}
                 className={cn(
                   "w-full px-4 py-2 text-left text-sm flex items-center justify-between",
-                  "hover:bg-primary/10 transition-colors",
+                  "hover:bg-accent transition-colors",
                   opt.value === value && "text-primary font-medium",
                   opt.disabled && "opacity-40 cursor-not-allowed"
                 )}

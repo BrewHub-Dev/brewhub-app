@@ -12,6 +12,7 @@ import {
   ChefHat,
   Calculator,
   Boxes,
+  Gift,
   type LucideIcon,
 } from "lucide-react";
 import type { Permission } from "@/lib/rbac";
@@ -92,6 +93,18 @@ export const navigationItems: NavItem[] = [
     href: "/dashboard/categories",
     icon: Tag,
     permission: "categories:view",
+  },
+  {
+    name: "Promociones",
+    href: "/dashboard/promocodes",
+    icon: Gift,
+    permission: "promocodes:manage",
+  },
+  {
+    name: "Recetas",
+    href: "/dashboard/recipes",
+    icon: ChefHat,
+    permission: "recipes:manage",
   },
   {
     name: "Invitaciones",

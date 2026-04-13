@@ -170,32 +170,36 @@ export default function OrdersView() {
                   >
                     <div className="flex items-center gap-4 p-4">
                       <div className="min-w-[100px]">
-                        <p className="text-sm font-mono font-semibold text-foreground">#{order.orderNumber}</p>
-                        <p className="text-xs text-muted-foreground">{formatTime(order.createdAt)}</p>
+                        <p className="text-base font-bold text-foreground tracking-tight">#{order.orderNumber}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">{formatTime(order.createdAt)}</p>
                       </div>
 
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-foreground truncate">
+                        <p className="text-sm font-semibold text-foreground truncate">
                           {order.customer
                             ? `${order.customer.name} ${order.customer.lastName}`
                             : order.guestName || "Cliente"}
                         </p>
-                        <p className="text-xs text-muted-foreground">
-                          {order.branchName ?? "Sin sucursal"} · {order.source === "pos" ? "POS" : "App"}
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          <span className="text-primary/70">{order.branchName ?? "Sin sucursal"}</span>
+                          <span className="mx-1.5">·</span>
+                          <span className={order.source === "pos" ? "text-blue-600" : "text-green-600"}>
+                            {order.source === "pos" ? "Punto de venta" : "App"}
+                          </span>
                         </p>
                       </div>
 
                       <div className="text-center min-w-[60px]">
-                        <p className="text-sm font-semibold">{order.items?.length ?? 0}</p>
-                        <p className="text-xs text-muted-foreground">items</p>
+                        <p className="text-lg font-bold text-foreground">{order.items?.length ?? 0}</p>
+                        <p className="text-xs text-muted-foreground">productos</p>
                       </div>
 
-                      <div className="text-right min-w-[80px]">
-                        <p className="text-sm font-bold text-primary">${order.total?.toFixed(2)}</p>
-                        <p className="text-xs text-muted-foreground capitalize">{order.paymentMethod}</p>
+                      <div className="text-right min-w-[90px]">
+                        <p className="text-lg font-bold text-primary">${order.total?.toFixed(2)}</p>
+                        <p className="text-xs text-muted-foreground capitalize mt-0.5">{order.paymentMethod}</p>
                       </div>
 
-                      <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-medium min-w-[110px] justify-center ${cfg.color}`}>
+                      <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold min-w-[120px] justify-center ${cfg.color}`}>
                         <StatusIcon className="w-3.5 h-3.5" />
                         {cfg.label}
                       </div>

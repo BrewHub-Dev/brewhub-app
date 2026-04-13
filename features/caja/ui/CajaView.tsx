@@ -76,9 +76,10 @@ function fmt(n: number) {
 }
 
 function fmtTime(iso: string, timezone: string = "America/Mexico_City") {
-  if (!iso) return "-"
-  const dt = DateTime.fromISO(iso, { zone: "utc" }).setZone(timezone)
-  return dt.toFormat("HH:mm")
+  if (!iso) return "Sin fecha"
+  const dt = DateTime.fromISO(iso)
+  if (!dt.isValid) return "Sin fecha"
+  return dt.setZone(timezone).toFormat("HH:mm")
 }
 
 
@@ -397,7 +398,6 @@ export default function CajaView() {
               </div>
             )}
 
-            {/* Tab: Órdenes */}
             {activeTab === "ordenes" && (
               <div className="glass rounded-2xl p-6">
                 <h2 className="font-semibold text-foreground mb-4 flex items-center gap-2">

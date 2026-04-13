@@ -29,6 +29,7 @@ import { StripeTerminalModal } from "./StripeTerminalModal"
 import { ReceiptModal } from "./ReceiptModal"
 import type { PaymentMethod } from "../types"
 import { useState, useMemo } from "react"
+import { useToast } from "@/components/ui/toast/ToastProvider"
 import { usePermissions } from "@/lib/hooks/usePermissions"
 
 const PAYMENT_METHODS: { value: PaymentMethod; label: string; icon: React.ElementType }[] = [
@@ -39,6 +40,7 @@ const PAYMENT_METHODS: { value: PaymentMethod; label: string; icon: React.Elemen
 ]
 
 export default function POSCard() {
+  const { showToast } = useToast()
   const { data: items = [], isLoading: loadingItems } = useQuery({
     queryKey: ["pos-items"],
     queryFn: getPOSItems,
@@ -132,20 +134,29 @@ export default function POSCard() {
   } | null>(null)
 
   async function handleCobrar() {
-    if (paymentMethod === "card") {
-      try {
+    try {
+      if (paymentMethod === "card") {
         const { order, clientSecret } = await checkoutCard()
         setStripeData({ clientSecret, orderId: order._id, orderNumber: order.orderNumber, orderTotal: order.total, customerEmail: email })
-      } catch {
-      }
-    } else if (paymentMethod === "terminal") {
-      try {
+        // No limpiar ni mostrar toast aquí, StripePaymentModal lo maneja
+        return
+      } else if (paymentMethod === "terminal") {
         const { order, clientSecret } = await checkoutCard()
         setTerminalData({ clientSecret, orderId: order._id, orderNumber: order.orderNumber, orderTotal: order.total })
-      } catch {
+        // No limpiar ni mostrar toast aquí, StripeTerminalModal lo maneja
+        return
+      } else {
+        await checkout()
+        showToast("success", "La orden se creó correctamente.")
+        // Limpiar datos del formulario
+        setCustomer("")
+        setEmail("")
+        setDiscount(0)
+        setNotes("")
+        setCashReceived(0)
       }
-    } else {
-      checkout()
+    } catch (err: any) {
+      showToast("error", err?.message || "Ocurrió un error al procesar la venta.")
     }
   }
 
@@ -192,7 +203,14 @@ export default function POSCard() {
           <p className="text-muted-foreground mt-1">Orden #{lastOrder.orderNumber}</p>
           <p className="text-3xl font-bold text-primary mt-3">${lastOrder.total.toFixed(2)}</p>
         </div>
-        <Button onClick={() => setLastOrder(null)} className="mt-4 px-8">
+        <Button onClick={() => {
+          setLastOrder(null)
+          setCustomer("")
+          setEmail("")
+          setDiscount(0)
+          setNotes("")
+          setCashReceived(0)
+        }} className="mt-4 px-8">
           Nueva venta
         </Button>
         <Button variant="outline" onClick={() => setShowReceipt(true)} className="mt-2 px-8 gap-2">

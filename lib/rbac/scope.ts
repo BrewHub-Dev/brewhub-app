@@ -58,10 +58,6 @@ export function getUserDataScope(user: User | null): DataScope {
   }
 }
 
-/**
- * Filtra query params según el scope del usuario
- * Útil para APIs
- */
 export function applyScopeFilter(
   scope: DataScope,
   filters: Record<string, any> = {}
@@ -83,9 +79,6 @@ export function applyScopeFilter(
   return scopedFilters;
 }
 
-/**
- * Verifica si el usuario puede acceder a una tienda específica
- */
 export function canAccessShop(scope: DataScope, shopId: string): boolean {
   if (scope.canViewAllShops) return true;
   if (!scope.shopIds) return false;
